@@ -176,7 +176,6 @@ int main(int argc, char** argv){
 
 			mvwprintw(asm_view, 1,  parent_y - MENU_BAR_H-1 - strlen(code_win_title)/2, code_win_title);
 			display_asm( &asm_text, code_line_num - 11, parent_y - MENU_BAR_H-1 , asm_line_count);	
-	 	//	display_asm( &asm_text, 0, parent_y - MENU_BAR_H-1 , asm_line_count);	
 			print_reg( registers, pc);
 			print_mem(&data_mem, 1, 1, dmem_info.start,  (parent_y - 16 - MENU_BAR_H), dmem_info.start);
 
@@ -191,7 +190,14 @@ int main(int argc, char** argv){
 			/* Stepping through program */
 
 			result = execute( &pc, &insn_mem, &im_info, &data_mem, &dmem_info, &registers );
-			if( result < 0 ){
+	        if(!result){
+			  	mvwprintw(asm_view, 1,  parent_y - MENU_BAR_H-1 - strlen(code_win_title)/2, code_win_title);
+				display_asm( &asm_text, code_line_num - 11, parent_y - MENU_BAR_H-1 , asm_line_count);	
+				print_reg( registers, pc);
+				print_mem(&data_mem, 1, 1, dmem_info.start,  (parent_y - 16 - MENU_BAR_H), dmem_info.start);
+
+			}
+			else if( result < 0 ){
 				mvprintw(mem_view, 1, 20, "Invalid Instruction. Halting execution");
 				do{
 					input = getch();
