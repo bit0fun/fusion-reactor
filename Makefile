@@ -9,7 +9,7 @@ all: $(PRGNAME)
 
 
 $(PRGNAME): $(OBJ)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^
+	$(CC) $(CFLAGS)  -o $@ $^ $(LDFLAGS)
 		
 %.o: %.c $(DEPS)
 	$(CC) $(CFLAGS) -c -o $@ $<
