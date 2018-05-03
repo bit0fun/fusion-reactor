@@ -4,13 +4,10 @@
 #include <stdlib.h>
 #include <ncurses.h>
 #include "elf_read.h"
-
-
-
+#include "cpu.h"  
 
 /* Simulation Parameters */
 #define DMEM_SIZE	2^(14)	/* Data memory size (kb) for simulation */
-
 
 /* Lazy approach. Pass struct to functions instead */
   const char* insn_type;
@@ -18,7 +15,6 @@
   uint8_t rd;
   uint8_t rsa;
   uint8_t rsb;
-  uint32_t PC = 0; /* Instruction Array Mapping */
   uint32_t pc;   /* Actual PC value */
   uint32_t entry_point;
   uint32_t imm;
@@ -26,7 +22,6 @@
   uint32_t registers[32];
   uint32_t* insn_mem;
   uint32_t code_line_num;
-#include "cpu.h"  
 
 
 
@@ -168,14 +163,14 @@ int main(int argc, char** argv){
 	if( result ){
 		printf("Cannot parse elf\n");
 	}
-	pc = im_info.start;//entry;
+	pc = im_info.entry;
     entry_point = pc;	
     code_line_num = 11;
 	char* code_win_title = "Assembly Code";
 	char input;
 	while( 1 ){
-		execute( &PC, &pc );
-		code_line_num += PC; //(pc  - entry_point)/4;
+		execute( &pc );
+		code_line_num += pc; //(pc  - entry_point)/4;
 		/* Drawing everything required before input */
 		input = getch();
 		if( check_run_key(input) ){
