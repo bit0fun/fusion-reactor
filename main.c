@@ -190,7 +190,7 @@ int main(int argc, char** argv){
 		} else if( input == 's' ){
 			/* Stepping through program */
 
-			result = execute( &pc );
+			result = execute( &pc, &insn_mem, &im_info, &data_mem, &dmem_info, &registers );
 			if( result < 0 ){
 				mvprintw(mem_view, 1, 20, "Invalid Instruction. Halting execution");
 				do{
