@@ -190,16 +190,16 @@ int main(int argc, char** argv){
 		} else if( input == 's' ){
 			/* Stepping through program */
 
-			result = execute( &pc, &insn_mem, &im_info, &data_mem, &dmem_info, &registers );
+			result = execute( &pc, &insn_mem, &im_info, &data_mem, &dmem_info, &(registers) );
 			if( result < 0 ){
-				mvprintw(mem_view, 1, 20, "Invalid Instruction. Halting execution");
+				mvwprintw(mem_view, 1, 20, "Invalid Instruction. Halting execution");
 				do{
 					input = getch();
 				} while( input != 'q'); /* Wait for user to quit */
 				cleanup();
 				break;
 			} else if( result == 1){
-				mvprintw(mem_view, 1, 20, "Co-Processor Instructions are not available.");
+				mvwprintw(mem_view, 1, 20, "Co-Processor Instructions are not available.");
 			}
 		} else {
 //			mvwprintw(mem_view, 1, 1, "Key pressed: %c\n", input);

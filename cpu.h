@@ -38,7 +38,7 @@ void sub( insn_info* insn, uint32_t* registers[32] ){
 }
 
 void not_r( insn_info* insn, uint32_t* registers[32] ){ 
-  registers[insn->rd] = ~( (*registers)[insn->rsa] );
+  (*registers)[insn->rd] = ~( (*registers)[insn->rsa] );
   insn->name = "not";
   return;
 }
@@ -49,159 +49,159 @@ void and_r( insn_info* insn, uint32_t* registers[32] ){
   return;
 }
 void or_r(insn_info* insn, uint32_t* registers[32] ){ 
-  registers[insn->rd] = registers[insn->rsa] | registers[insn->rsb];
-  insn_name = "or";
+  (*registers)[insn->rd] = (*registers)[insn->rsa] | (*registers)[insn->rsb];
+  insn->name = "or";
   return;
 }
 
 void xor_r(insn_info* insn, uint32_t* registers[32] ){
-  registers[insn->rd] = registers[insn->rsa] ^ registers[insn->rsb];
-  insn_name = "xor";
+  (*registers)[insn->rd] = (*registers)[insn->rsa] ^ (*registers)[insn->rsb];
+  insn->name = "xor";
   return;
 }
 
 void sal(insn_info* insn, uint32_t* registers[32] ){
-  registers[insn->rd] = registers[insn->rsa] << registers[insn->rsb];
-  insn_name = "sal";
+  (*registers)[insn->rd] = (*registers)[insn->rsa] << (*registers)[insn->rsb];
+  insn->name = "sal";
   return;
 }
 
 void sar(insn_info* insn, uint32_t* registers[32] ){
 	/* Since the C defintion for shifting is undefined, need to do something
 	 * special */
-  registers[insn->rd] = registers[insn->rsa] >> registers[insn->rsb];
+  (*registers)[insn->rd] = (*registers)[insn->rsa] >> (*registers)[insn->rsb];
   /* Determining if signed*/
   if( 0x80000000 & registers[insn->rsa] ) {
-	  registers[insn->rd] |= 0x80000000; /* Ensuring signed properly, set MSB */
+	  (*registers)[insn->rd] |= 0x80000000; /* Ensuring signed properly, set MSB */
   } else {
-  	  registers[insn->rd] &= 0x7fffffff; /* Ensuring signed properly, clear MSB */
+  	  (*registers)[insn->rd] &= 0x7fffffff; /* Ensuring signed properly, clear MSB */
   }
-  insn_name = "sar";
+  insn->name = "sar";
   return;
 }
 void sll(insn_info* insn, uint32_t* registers[32] ){
-  registers[insn->rd] = registers[insn->rsa] << registers[insn->rsb];
-  insn_name = "sll";
+  (*registers)[insn->rd] = (*registers)[insn->rsa] << (*registers)[insn->rsb];
+  insn->name = "sll";
   return;
 }
 
-void slr(insn_info* insn, uint32_t registers[32] ){
-  registers[insn->rd] = registers[insn->rsa] >> registers[insn->rsb];
-  insn_name = "slr";
+void slr(insn_info* insn, uint32_t* registers[32] ){
+  (*registers)[insn->rd] = (*registers)[insn->rsa] >> (*registers)[insn->rsb];
+  insn->name = "slr";
   return;
 }
 
-int32_t comp( insn_info* insn, uint32_t registers[32] ){
-  int32_t a = registers[insn->rsa];
-  int32_t b = registers[insn->rsb];
-  insn_name = "comp";
-  return ( a > b ) ? 1:(( a < b ) ? -1:0 );
+int32_t comp( insn_info* insn, uint32_t* registers[32] ){
+  int32_t a = (*registers)[insn->rsa];
+  int32_t b = (*registers)[insn->rsb];
+  insn->name = "comp";
+  (*registers)[insn->rd] = ( a > b ) ? 1:(( a < b ) ? -1:0 );
 }
 
 
 
 /*	* 	*	 * 	* 	*	 *	*	*	*	*	*	*	*	*	*	*	*	*	*	*	*	*	*	*	*/
 //I Type
-void addi( insn_info* insn, uint32_t registers[32] ){ 
-  registers[insn->rd] = registers[insn->rsa] + insn->imm;
-  insn_name = "addi";
+void addi( insn_info* insn, uint32_t* registers[32] ){ 
+  (*registers)[insn->rd] = (*registers)[insn->rsa] + insn->imm;
+  insn->name = "addi";
   return;
 }
 
 
-void subi( insn_info* insn, uint32_t registers[32] ){ 
-  registers[insn->rd] = registers[insn->rsa] - insn->imm;
-  insn_name = "sub";
+void subi( insn_info* insn, uint32_t* registers[32] ){ 
+  (*registers)[insn->rd] = (*registers)[insn->rsa] - insn->imm;
+  insn->name = "sub";
   return;
 }
  
 
-void not_i( insn_info* insn, uint32_t registers[32] ){ 
-  registers[insn->rd] = ~(insn->imm);
-  insn_name = "not";
+void not_i( insn_info* insn, uint32_t* registers[32] ){ 
+  (*registers)[insn->rd] = ~(insn->imm);
+  insn->name = "not";
   return;
 }
 
-void and_i( insn_info* insn, uint32_t registers[32] ){ 
-  registers[insn->rd] = registers[insn->rsa] & (insn->imm);
-  insn_name = "and";
+void and_i( insn_info* insn, uint32_t* registers[32] ){ 
+  (*registers)[insn->rd] = (*registers)[insn->rsa] & (insn->imm);
+  insn->name = "and";
   return;
 }
-void or_i( insn_info* insn, uint32_t registers[32] ){ 
-  registers[insn->rd] = registers[insn->rsa] | insn->imm;
-  insn_name = "or";
-  return;
-}
-
-void xor_i( insn_info* insn, uint32_t registers[32] ){
-  registers[insn->rd] = registers[insn->rsa] ^ (insn->imm);
-  insn_name = "xor";
+void or_i( insn_info* insn, uint32_t* registers[32] ){ 
+  (*registers)[insn->rd] = (*registers)[insn->rsa] | insn->imm;
+  insn->name = "or";
   return;
 }
 
-void sali( insn_info* insn, uint32_t registers[32] ){
-  registers[insn->rd] = registers[insn->rsa] << (insn->imm);
-  insn_name = "sal";
+void xor_i( insn_info* insn, uint32_t* registers[32] ){
+  (*registers)[insn->rd] = (*registers)[insn->rsa] ^ (insn->imm);
+  insn->name = "xor";
   return;
 }
 
-void sari( insn_info* insn, uint32_t registers[32] ){
-  registers[insn->rd] = registers[insn->rsa] >> (insn->imm);
-  if( 0x80000000 & registers[insn->rsa] ) {
-	  registers[insn->rd] |= 0x80000000; /* Ensuring signed properly, set MSB */
+void sali( insn_info* insn, uint32_t* registers[32] ){
+  (*registers)[insn->rd] = registers[insn->rsa] << (insn->imm);
+  insn->name = "sal";
+  return;
+}
+
+void sari( insn_info* insn, uint32_t* registers[32] ){
+  (*registers)[insn->rd] = (*registers)[insn->rsa] >> (insn->imm);
+  if( 0x80000000 & (*registers)[insn->rsa] ) {
+	  (*registers)[insn->rd] |= 0x80000000; /* Ensuring signed properly, set MSB */
   } else {
-  	  registers[insn->rd] &= 0x7fffffff; /* Ensuring signed properly, clear MSB */
+  	  (*registers)[insn->rd] &= 0x7fffffff; /* Ensuring signed properly, clear MSB */
   }
-  insn_name = "sar";
+  insn->name = "sar";
   return;
 }
-void slli( insn_info* insn, uint32_t registers[32] ){
-  registers[insn->rd] = registers[insn->rsa] << (insn->imm);
-  insn_name = "sll";
-  return;
-}
-
-void slri( insn_info* insn, uint32_t registers[32] ){
-  registers[insn->rd] = registers[insn->rsa] >> (insn->imm);
-  insn_name = "slr";
+void slli( insn_info* insn, uint32_t* registers[32] ){
+  (*registers)[insn->rd] = (*registers)[insn->rsa] << (insn->imm);
+  insn->name = "sll";
   return;
 }
 
-int32_t compi( insn_info* insn, uint32_t registers[32] ){
+void slri( insn_info* insn, uint32_t* registers[32] ){
+  (*registers)[insn->rd] = (*registers)[insn->rsa] >> (insn->imm);
+  insn->name = "slr";
+  return;
+}
+
+int32_t compi( insn_info* insn, uint32_t* registers[32] ){
   int32_t a = registers[insn->rsa];
   int32_t b = insn->imm;
-  insn_name = "comp";
-  return ( a > b ) ? 1:(( a < b ) ? -1:0 );
+  insn->name = "comp";
+  (*registers)[insn->rd] = ( a > b ) ? 1:(( a < b ) ? -1:0 );
 }
 
 
 
 //Load Type
-void lw( uint32_t* data_mem, dataseg_info dseg_i, insn_info* insn, uint32_t registers[32] ){ 
-  uint32_t idx = (( registers[insn->rsa] + (insn->imm & 0x00003fff) ) - dseg_i.start)/4 ;
-  registers[insn->rd] = data_mem[idx];
-  insn_name = "lw";
+void lw( uint32_t* data_mem, dataseg_info dseg_i, insn_info* insn, uint32_t* registers[32] ){ 
+  uint32_t idx = (( (*registers)[insn->rsa] + (insn->imm & 0x00003fff) ) - dseg_i.start)/4 ;
+  (*registers)[insn->rd] = data_mem[idx];
+  insn->name = "lw";
   return;
 }
 
-void lth( uint32_t* data_mem, dataseg_info dseg_i, insn_info* insn, uint32_t registers[32] ){ 
-  uint32_t idx = (( registers[insn->rsa] + (insn->imm & 0x00003fff) ) - dseg_i.start)/4 ;
-  registers[rd] = (data_mem[idx] & 0xFFFFFF00) >> 8; /* May need to double check, due to running big endian on little endian */
-  insn_name = "lth";
+void lth( uint32_t* data_mem, dataseg_info dseg_i, insn_info* insn, uint32_t* registers[32] ){ 
+  uint32_t idx = (( (*registers)[insn->rsa] + (insn->imm & 0x00003fff) ) - dseg_i.start)/4 ;
+  (*registers)[rd] = (data_mem[idx] & 0xFFFFFF00) >> 8; /* May need to double check, due to running big endian on little endian */
+  insn->name = "lth";
   return;
 }
 
-void lh( uint32_t* data_mem, dataseg_info dseg_i, insn_info* insn, uint32_t registers[32] ){ 
-  uint32_t idx = (( registers[insn->rsa] + (insn->imm & 0x0000ffff) ) - dseg_i.start)/4 ;
-  registers[rd] = (data_mem[idx] & 0xFFFF0000) >> 16; /* May need to double check, due to running big endian on little endian */
-  insn_name = "lh";
+void lh( uint32_t* data_mem, dataseg_info dseg_i, insn_info* insn, uint32_t* registers[32] ){ 
+  uint32_t idx = (( (*registers)[insn->rsa] + (insn->imm & 0x0000ffff) ) - dseg_i.start)/4 ;
+  (*registers)[rd] = (data_mem[idx] & 0xFFFF0000) >> 16; /* May need to double check, due to running big endian on little endian */
+  insn->name = "lh";
   return; 
 }
 
-void lb( uint32_t* data_mem, dataseg_info dseg_i, insn_info* insn, uint32_t registers[32] ){ 
+void lb( uint32_t* data_mem, dataseg_info dseg_i, insn_info* insn, uint32_t* registers[32] ){ 
   uint32_t idx = (( registers[insn->rsa] + (insn->imm & 0x0000ffff) ) - dseg_i.start)/4 ;
-  registers[rd] = (data_mem[idx] & 0xFF000000) >> 24; /* May need to double check, due to running big endian on little endian */
-  insn_name = "lb";
+  (*registers)[rd] = (data_mem[idx] & 0xFF000000) >> 24; /* May need to double check, due to running big endian on little endian */
+  insn->name = "lb";
   return;
 }
 
@@ -211,7 +211,7 @@ void lb( uint32_t* data_mem, dataseg_info dseg_i, insn_info* insn, uint32_t regi
 
 /*	* 	*	 * 	* 	*	 *	*	*	*	*	*	*	*	*	*	*	*	*	*	*	*	*	*	*	*/
 //LI Type
-void li( insn_info* insn, uint32_t registers[32] ){  
+void li( insn_info* insn, uint32_t* registers[32] ){  
 	/* Get signed version of immediate */
 	int16_t sign_imm = (int16_t) (insn->imm & 0x0000ffff);   
 	registers[insn->rd] = (( sign_imm << 16) >> 16 );  
@@ -220,7 +220,7 @@ void li( insn_info* insn, uint32_t registers[32] ){
 }
 
 
-void lsi( insn_info* insn, uint32_t registers[32] ){ 
+void lsi( insn_info* insn, uint32_t* registers[32] ){ 
 	int16_t sign_imm = (int16_t) (insn->imm & 0x0000ffff);   
 	//registers[insn->rd] = (( sign_imm << 16) >> 16 );  
 	/* Supposed to write to system register file, so do nothing at the moment*/
@@ -229,7 +229,7 @@ void lsi( insn_info* insn, uint32_t registers[32] ){
 }
 
 
-void lgi( insn_info* insn, uint32_t registers[32] ){ 
+void lgi( insn_info* insn, uint32_t* registers[32] ){ 
 	int16_t sign_imm = (int16_t) (insn->imm & 0x0000ffff);   
 	//registers[insn->rd] = (( sign_imm << 16) >> 16 );  
 	/* Supposed to write to system register file, so do nothing at the moment*/
@@ -238,7 +238,7 @@ void lgi( insn_info* insn, uint32_t registers[32] ){
 }
 
 
-void lui( insn_info* insn, uint32_t registers[32] ){ 
+void lui( insn_info* insn, uint32_t* registers[32] ){ 
 //  registers[rd] &= 0x0000FFFF;
   registers[rd] = ( imm << 16 ) & 0xFFFF0000;
   insn_name = "lui";
@@ -246,7 +246,7 @@ void lui( insn_info* insn, uint32_t registers[32] ){
 }
 
 
-void lusi( insn_info* insn, uint32_t registers[32] ){ 
+void lusi( insn_info* insn, uint32_t* registers[32] ){ 
 /*
   registers[rd] &= 0x0000FFFF;
   registers[rd] |= ( imm << 16 ); */
@@ -256,7 +256,7 @@ void lusi( insn_info* insn, uint32_t registers[32] ){
 }
 
 
-void lugi( insn_info* insn, uint32_t registers[32] ){ 
+void lugi( insn_info* insn, uint32_t* registers[32] ){ 
 /*
   registers[rd] &= 0x0000FFFF;
   registers[rd] |= (( imm << 16 ) & 0xFFFF0000);
@@ -267,7 +267,7 @@ void lugi( insn_info* insn, uint32_t registers[32] ){
 }
 
 
-void lni( insn_info* insn, uint32_t registers[32] ){ 
+void lni( insn_info* insn, uint32_t* registers[32] ){ 
   registers[insn->rd] &= 0xFFFF0000;
   registers[insn->rd] |= (insn->imm & 0x0000FFFF); 
   insn_name = "lni"; 
@@ -275,7 +275,7 @@ void lni( insn_info* insn, uint32_t registers[32] ){
 }
 
 
-void lnsi( insn_info* insn, uint32_t registers[32] ){ 
+void lnsi( insn_info* insn, uint32_t* registers[32] ){ 
 //  registers[insn->rd] = (imm & 0x0000FFFF); 
 	/* Do nothing until implementation of system register file */
   insn_name = "lnsi";
@@ -283,7 +283,7 @@ void lnsi( insn_info* insn, uint32_t registers[32] ){
 }
 
  
-void lngi( insn_info* insn, uint32_t registers[32] ){ 
+void lngi( insn_info* insn, uint32_t* registers[32] ){ 
  // registers[insn->rd] = (insn->imm & 0x0000FFFF); 
 	/* Do nothing until implementation of global register file */
   insn_name = "lngi";
@@ -291,7 +291,7 @@ void lngi( insn_info* insn, uint32_t registers[32] ){
 }
 
 
-void luni( insn_info* insn, uint32_t registers[32] ){ 
+void luni( insn_info* insn, uint32_t* registers[32] ){ 
   registers[insn->rd] &= 0x0000FFFF;
   registers[insn->rd] |= ( imm << 16 );
   insn_name = "luni";
@@ -299,7 +299,7 @@ void luni( insn_info* insn, uint32_t registers[32] ){
 }
 
 
-void lunsi( insn_info* insn, uint32_t registers[32] ){ 
+void lunsi( insn_info* insn, uint32_t* registers[32] ){ 
 /*  registers[insn->rd] &= 0x0000FFFF;
   registers[insn->rd] |= ( imm << 16 ); */
 	/* Do nothing until implementation of system register file */
@@ -308,7 +308,7 @@ void lunsi( insn_info* insn, uint32_t registers[32] ){
 }
 
  
-void lungi( insn_info* insn, uint32_t registers[32] ){ 
+void lungi( insn_info* insn, uint32_t* registers[32] ){ 
 /*  registers[insn->rd] &= 0x0000FFFF;
   registers[insn->rd] |= ( imm << 16 ); */
 	/* Do nothing until implementation of global register file */
@@ -319,14 +319,14 @@ void lungi( insn_info* insn, uint32_t registers[32] ){
 
 
 //S Type
-void sw( uint32_t* data_mem, dataseg_info dseg_i, insn_info* insn, uint32_t registers[32] ){ 
+void sw( uint32_t** data_mem, dataseg_info dseg_i, insn_info* insn, uint32_t* registers[32] ){ 
   uint32_t idx = (( registers[insn->rsa] + (insn->imm & 0x00003fff) ) - dseg_i.start)/4 ;
-  data_mem[idx] = registers[rsb];
+  (*data_mem)[idx] = registers[rsb];
   insn_name = "sw";
   return;
 }
 
-void sh( uint32_t* data_mem, dataseg_info dseg_i, insn_info* insn, uint32_t registers[32] ){ 
+void sh( uint32_t** data_mem, dataseg_info dseg_i, insn_info* insn, uint32_t* registers[32] ){ 
   uint32_t idx = (( registers[insn->rsa] + (insn->imm & 0x00003fff) ) - dseg_i.start)/4 ;
   data_mem[idx] &= 0x0000FFFF;
   data_mem[idx] |= (registers[insn->rsb]) << 16;
@@ -334,7 +334,7 @@ void sh( uint32_t* data_mem, dataseg_info dseg_i, insn_info* insn, uint32_t regi
   return;
 }
 
-void sb( uint32_t* data_mem, dataseg_info dseg_i, insn_info* insn, uint32_t registers[32] ){ 
+void sb( uint32_t** data_mem, dataseg_info dseg_i, insn_info* insn, uint32_t registers[32] ){ 
   uint32_t idx = (( registers[insn->rsa] + (insn->imm & 0x00003fff) ) - dseg_i.start)/4 ;
   data_mem[idx] &= 0x000000FF;
   data_mem[idx] |= (registers[insn->rsb]) << 24;
@@ -343,7 +343,7 @@ void sb( uint32_t* data_mem, dataseg_info dseg_i, insn_info* insn, uint32_t regi
 }
 
 
-void sth( uint32_t* data_mem, dataseg_info dseg_i, insn_info* insn, uint32_t registers[32] ){ 
+void sth( uint32_t** data_mem, dataseg_info dseg_i, insn_info* insn, uint32_t registers[32] ){ 
   uint32_t idx = (( registers[insn->rsa] + (insn->imm & 0x00003fff) ) - dseg_i.start)/4 ;
   data_mem[idx] &= 0x000000FF;
   data_mem[idx] |= (registers[insn->rsb]) << 24; 
@@ -485,7 +485,7 @@ void print_insn_details( void ){
   return;
 }
 
-int execute( uint32_t* pc, uint32_t** tseg, textseg_info* tseg_i, uint32_t** dseg, dataseg_info* dseg_i, uint32_t* registers[32] ){
+int execute( uint32_t* pc, uint32_t** tseg, textseg_info* tseg_i, uint32_t** dseg, dataseg_info* dseg_i, uint32_t** registers ){
 	/* Retrieving text segment data from struct */
 	uint32_t text_start = tseg_i->start;
 	uint32_t text_size	= tseg_i->size;
@@ -602,8 +602,8 @@ int execute( uint32_t* pc, uint32_t** tseg, textseg_info* tseg_i, uint32_t** dse
       insn_i.imm = GET_IMM_J(insn);
 
       switch( GET_FUNCT_J(insn) ){
-        case(0x0): j( pc, insn_i, registers); break;
-        default: jr( pc, insn_i, registers); break;;
+        case(0x0): j( pc, &insn_i, registers); break;
+        default: jr( pc, &insn_i, registers); break;;
       }
          
    
@@ -614,8 +614,8 @@ int execute( uint32_t* pc, uint32_t** tseg, textseg_info* tseg_i, uint32_t** dse
       insn_i.imm = GET_IMM_J(insn);
 
       switch( GET_FUNCT_J(insn) ){
-        case(0x0): jal( pc, insn_i, registers); break;
-        default: jrl( pc, insn_i, registers); break;
+        case(0x0): jal( pc, &insn_i, registers); break;
+        default: jrl( pc, &insn_i, registers); break;
       }
     } 
     else if( IS_B_TYPE( insn ) ){
@@ -624,10 +624,10 @@ int execute( uint32_t* pc, uint32_t** tseg, textseg_info* tseg_i, uint32_t** dse
       insn_i.rsb = GET_RSB_B(insn);
       insn_i.imm = GET_IMM_B(insn);
       switch( GET_FUNCT_B(insn) ){
-        case(0x0): beq( pc, insn_i, registers); break;
-        case(0x1): bne( pc, insn_i, registers); break;
-        case(0x2): bgt( pc, insn_i, registers); break;
-        case(0x3): blt( pc, insn_i, registers); break;
+        case(0x0): beq( pc, &insn_i, registers); break;
+        case(0x1): bne( pc, &insn_i, registers); break;
+        case(0x2): bgt( pc, &insn_i, registers); break;
+        case(0x3): blt( pc, &insn_i, registers); break;
         default: ;//printf("Not valid B Type instruction\n");
       }
    
