@@ -84,7 +84,7 @@ static inline char *elf_lookup_string(Elf32_Ehdr *hdr, int offset){
 
 
 /* Accessing symbol value */
-static int elf_get_symval(Elf32_Ehdr *hdr, int table, uint index) {
+static int elf_get_symval(Elf32_Ehdr *hdr, int table, unsigned int index) {
 	if(table == SHN_UNDEF || index == SHN_UNDEF)
 		return 0;
 	Elf32_Shdr *symtab = elf_section(hdr, table);

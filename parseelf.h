@@ -216,7 +216,7 @@ static inline Elf32_Shdr *elf_sheader(Elf32_Ehdr *hdr);
 static inline Elf32_Shdr *elf_section(Elf32_Ehdr *hdr, int i);
 static inline char *elf_str_table(Elf32_Ehdr *hdr);
 static inline char *elf_lookup_string(Elf32_Ehdr *hdr, int offset);
-static int elf_get_symval(Elf32_Ehdr *hdr, int table, uint index);
+static int elf_get_symval(Elf32_Ehdr *hdr, int table, unsigned int index);
 static int elf_load_stage1 (Elf32_Ehdr *hdr);
 static int elf_perform_reloc(Elf32_Ehdr *hdr, Elf32_Rela *rela, Elf32_Shdr *reltab);
 static int elf_load_stage2(Elf32_Ehdr* hdr);

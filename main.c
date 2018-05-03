@@ -1,4 +1,4 @@
-//#include "draw.h"
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -6,9 +6,27 @@
 #include "elf_read.h"
 
 
+
+
 /* Simulation Parameters */
 #define DMEM_SIZE	2^(14)	/* Data memory size (kb) for simulation */
 
+
+/* Lazy approach. Pass struct to functions instead */
+  const char* insn_type;
+  const char* insn_name;
+  uint8_t rd;
+  uint8_t rsa;
+  uint8_t rsb;
+  uint32_t PC = 0; /* Instruction Array Mapping */
+  uint32_t pc;   /* Actual PC value */
+  uint32_t entry_point;
+  uint32_t imm;
+  uint32_t* data_mem;
+  uint32_t registers[32];
+  uint32_t* insn_mem;
+  uint32_t code_line_num;
+#include "cpu.h"  
 
 
 
@@ -72,11 +90,10 @@ int main(int argc, char** argv){
 	dataseg_info dmem_info;
 
 	/* Memory Data */
-	uint32_t*	data_mem = calloc( DMEM_SIZE, sizeof( uint32_t ) );	
-	uint32_t* 	insn_mem = NULL; /* needs to be allocated after getting ELF file */
+	data_mem = calloc( DMEM_SIZE, sizeof( uint32_t ) );	
+	insn_mem = NULL; /* needs to be allocated after getting ELF file */
 
-	/* Register Data */
-	uint32_t	reg[31];
+	
 	uint32_t	pc;
 
 
@@ -123,12 +140,23 @@ int main(int argc, char** argv){
 	}
 
 	/* reduce size, since it isn't necessary for such a large buffer */
-	int asm_file_len = strlen( argv[1] );
+	/*int asm_file_len = strlen( argv[1] );
 	char* asm_filename = (char*) calloc(asm_file_len, sizeof(char));
 	strncpy(asm_filename, (const char*) argv[1] , (size_t) asm_file_len);
 	
 	asm_line_count = count_line_number( asm_filename );
-	read_asm_file(asm_filename, &asm_text);
+	read_asm_file(asm_filename, &asm_text);*/
+	
+	/*Create objdump file to be pprinted in code area */
+	char create_objdump_file_command[200] = "fusion-elf-objdump -d  ";
+	strcat(create_objdump_file_command, argv[2]);
+	strcat(create_objdump_file_command, " >> code.txt");
+	if(!system(create_objdump_file_command))
+	  printf("Could not create objdump file");	  
+    //free(create_objdump_file_command);
+	
+    asm_line_count = count_line_number( "code.txt" );
+	read_asm_file("code.txt", &asm_text);
 
 //	int elf_file_len = strlen( argv[2] );
 //	char* elf_filename = (char*) calloc(asm_file_len, sizeof(char));
@@ -140,16 +168,21 @@ int main(int argc, char** argv){
 	if( result ){
 		printf("Cannot parse elf\n");
 	}
-	pc = im_info.entry;	
-
+	pc = im_info.start;//entry;
+    entry_point = pc;	
+    code_line_num = 11;
+	char* code_win_title = "Assembly Code";
 	char input;
 	while( 1 ){
+		execute( &PC, &pc );
+		code_line_num += PC; //(pc  - entry_point)/4;
 		/* Drawing everything required before input */
 		input = getch();
 		if( check_run_key(input) ){
-			mvwprintw(asm_view, 1, 1, "Assembly Code");
-			display_asm( &asm_text, 0, parent_y - MENU_BAR_H-1 , asm_line_count);	
-			print_reg( reg, pc);
+			mvwprintw(asm_view, 1,  parent_y - MENU_BAR_H-1 - strlen(code_win_title)/2, code_win_title);
+			display_asm( &asm_text, code_line_num - 11, parent_y - MENU_BAR_H-1 , asm_line_count);	
+	 	//	display_asm( &asm_text, 0, parent_y - MENU_BAR_H-1 , asm_line_count);	
+			print_reg( registers, pc);
 			print_mem(&data_mem, 1, 1, dmem_info.start,  (parent_y - 16 - MENU_BAR_H), dmem_info.start);
 			
 			//mvwprintw(asm_view, 1, 3, "Run key pressed\n");	
@@ -336,15 +369,21 @@ int display_asm( char*** asm_text, int line_start, int line_end, int line_max){
 
 	int i;
 	/* Write out lines */
-	for(i = line_start; i < wlinenum; i++){
-		mvwprintw(asm_view, (3+(i - line_start)), 1, "%s\n", (*asm_text)[i]);			
+	//for(i = line_start; i < wlinenum; i++){
+	for(i = 0; i < wlinenum; i++){
+		if( i == code_line_num)
+		  mvwprintw(asm_view, (3+ i), 2, "*%s\n", (*asm_text)[i+line_start]);
+		  //mvwprintw(asm_view, (3+(i - line_start)), 2, "*%s\n", (*asm_text)[i]);
+		else
+		  mvwprintw(asm_view, (3+ i), 3, "%s\n", (*asm_text)[i+line_start]);			
+		  //mvwprintw(asm_view, (3+(i - line_start)), 3, "%s\n", (*asm_text)[i]);			
 	}
 	
 	return 0;
 }
 
 /* Prints out register values to proper window
- * any more register values can be added if needed, though unsure of what to
+I * any more register values can be added if needed, though unsure of what to
  * add
  * */
 int print_reg(uint32_t reg[32],  uint32_t pc){
