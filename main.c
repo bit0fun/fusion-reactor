@@ -169,22 +169,27 @@ int main(int argc, char** argv){
 	char* code_win_title = "Assembly Code";
 	char input;
 	while( 1 ){
-		execute( &pc );
-		code_line_num += pc; //(pc  - entry_point)/4;
+		code_line_num += (pc  - entry_point)/4;
 		/* Drawing everything required before input */
 		input = getch();
 		if( check_run_key(input) ){
+
 			mvwprintw(asm_view, 1,  parent_y - MENU_BAR_H-1 - strlen(code_win_title)/2, code_win_title);
 			display_asm( &asm_text, code_line_num - 11, parent_y - MENU_BAR_H-1 , asm_line_count);	
 	 	//	display_asm( &asm_text, 0, parent_y - MENU_BAR_H-1 , asm_line_count);	
 			print_reg( registers, pc);
 			print_mem(&data_mem, 1, 1, dmem_info.start,  (parent_y - 16 - MENU_BAR_H), dmem_info.start);
+
+
 			
 			//mvwprintw(asm_view, 1, 3, "Run key pressed\n");	
 		} else if( check_exit_key(input) ){
 			cleanup();
 			break;
 			//wprintw(asm_view, "Exit key pressed\n");
+		} else if( input == 's' ){
+			/* Stepping through program */
+			execute( &pc );
 		} else {
 			mvwprintw(mem_view, 1, 1, "Key pressed: %c\n", input);
 		}
