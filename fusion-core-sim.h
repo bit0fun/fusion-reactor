@@ -7,7 +7,7 @@
 
 /*-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*/
 /* Simulation Parameters */
-#define DMEM_SIZE	2^(14)	/* Data memory size (kb) for simulation */
+#define DMEM_SIZEi	2^(16)	/* Data memory size (kb) for simulation */
 #define NUM_REGS 32
 #define BASE_MEM 0x400000
 #define INSN_MEM_BASE 0x40000
@@ -210,6 +210,17 @@
 #define  SYSTMPR5	= 61;
 #define  SYSREGHI0	= 62;
 #define  SYSREGLOW0 	= 63;
+
+typedef struct {
+  char* name;//[8]; /* instruction names longer than this aren't possible */
+  char type;
+  uint8_t rd;
+  uint8_t rsa;
+  uint8_t rsb;
+  uint32_t imm;
+} insn_info;
+
+
 
 
 #endif /* FUSION_CORE_SIM_H */
