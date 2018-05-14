@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <ncurses.h>
 #include "elf_read.h"
-#include "cpu.h"  
+#include "opc.h"  
 
 /* Simulation Parameters */
 #define DMEM_SIZE	2^(14)	/* Data memory size (kb) for simulation */

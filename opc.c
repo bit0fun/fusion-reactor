@@ -5,7 +5,7 @@ uint32_t add( uint32_t rsa, uint32_t rsb ){
   return rsa + rsb;
 }
 
-uint32_t sub( uint32_t rsa, rsb ){
+uint32_t sub( uint32_t rsa, uint32_t rsb ){
 	return rsa - rsb;
 }
 
@@ -125,7 +125,7 @@ uint32_t lsi( uint16_t imm ){
 	return  SEXT_16B( (uint32_t)imm );  
 }
 
-uint32_t lgi( insn_info* insn, uint32_t* registers[32] ){ 
+uint32_t lgi( uint16_t imm ){ 
 	/* Supposed to write to global register file*/
 	return  SEXT_16B( (uint32_t)imm );  
 }
