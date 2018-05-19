@@ -5,6 +5,7 @@
 #include <ncurses.h>
 #include "elf_read.h"
 #include "opc.h"  
+#include "cpu_sim.h"
 
 /* Simulation Parameters */
 #define DMEM_SIZE	2^(14)	/* Data memory size (kb) for simulation */
@@ -74,6 +75,7 @@ int display_asm( char*** asm_text, int line_start, int line_end, int line_max);
 int print_reg(uint32_t reg[32],  uint32_t pc);
 int print_mem(uint32_t** mem, int xpos, int ypos, uint32_t addr_start, int naddr, uint32_t addr_seg_start);
 
+
 int main(int argc, char** argv){
 
 	/* Assembly File Text */
@@ -106,8 +108,6 @@ int main(int argc, char** argv){
 	keypad(stdscr, TRUE);
 	noecho();
 	
-
-
 	/* Create Menu Bar */
 	menu_bar = newwin(MENU_BAR_H, parent_x / (MENU_BAR_W / 100) , 0, 0);
 
@@ -127,28 +127,27 @@ int main(int argc, char** argv){
 	refresh_all();
 	
 	/* Get assembly file to display */
-	if(argc < 3) {
+	if(argc != 2) {
 		cleanup();	
 		endwin();
-		printf("Usage: fusion-reactor <file.S> <file.elf>\n ");
+		printf("Usage: fusion-reactor <file.elf>\n ");
 		return -1;
 	}
 
 	/* reduce size, since it isn't necessary for such a large buffer */
-	/*int asm_file_len = strlen( argv[1] );
-	char* asm_filename = (char*) calloc(asm_file_len, sizeof(char));
-	strncpy(asm_filename, (const char*) argv[1] , (size_t) asm_file_len);
+	//int asm_file_len = strlen( argv[1] );
+	//char* asm_filename = (char*) calloc(asm_file_len, sizeof(char));
+	//strncpy(asm_filename, (const char*) argv[1] , (size_t) asm_file_len);
 	
-	asm_line_count = count_line_number( asm_filename );
-	read_asm_file(asm_filename, &asm_text);*/
+	//asm_line_count = count_line_number( asm_filename );
+	//read_asm_file(asm_filename, &asm_text);
 	
-	/*Create objdump file to be pprinted in code area */
-	char create_objdump_file_command[200] = "fusion-elf-objdump -d  ";
+	/*Create objdump file to be printed in code area */
+	char create_objdump_file_command[256] = "fusion-elf-objdump -d  ";
 	strcat(create_objdump_file_command, argv[2]);
 	strcat(create_objdump_file_command, " >> code.txt");
 	if(!system(create_objdump_file_command))
-	  printf("Could not create objdump file");	  
-    //free(create_objdump_file_command);
+		printf("Could not create objdump file");	  
 	
     asm_line_count = count_line_number( "code.txt" );
 	read_asm_file("code.txt", &asm_text);
@@ -164,12 +163,16 @@ int main(int argc, char** argv){
 		printf("Cannot parse elf\n");
 	}
 	pc = im_info.entry;
+	int cycleno = 0;
     entry_point = pc;	
     code_line_num = 11;
 	char* code_win_title = "Assembly Code";
 	char input;
+	insn_info insn_i;
+
 	while( 1 ){
 		code_line_num += (pc  - entry_point)/4;
+		insn_i.word = insn_mem[ code_line_num ]; /* Saving instruction word */
 		/* Drawing everything required before input */
 		input = getch();
 		if( check_run_key(input) ){
@@ -179,18 +182,14 @@ int main(int argc, char** argv){
 	 	//	display_asm( &asm_text, 0, parent_y - MENU_BAR_H-1 , asm_line_count);	
 			print_reg( registers, pc);
 			print_mem(&data_mem, 1, 1, dmem_info.start,  (parent_y - 16 - MENU_BAR_H), dmem_info.start);
-
-
 			
-			//mvwprintw(asm_view, 1, 3, "Run key pressed\n");	
 		} else if( check_exit_key(input) ){
 			cleanup();
 			break;
-			//wprintw(asm_view, "Exit key pressed\n");
 		} else if( input == 's' ){
 			/* Stepping through program */
 
-			result = execute( &pc, &insn_mem, &im_info, &data_mem, &dmem_info, &(registers) );
+			result = execute( &insn_i, &(registers), &pc, &cycleno, &data_mem, dseg_i );
 			if( result < 0 ){
 				mvwprintw(mem_view, 1, 20, "Invalid Instruction. Halting execution");
 				do{
@@ -380,8 +379,7 @@ int display_asm( char*** asm_text, int line_start, int line_end, int line_max){
 
 	int i;
 	/* Write out lines */
-	//for(i = line_start; i < wlinenum; i++){
-	for(i = 0; i < wlinenum; i++){
+	for(i = line_start; i < wlinenum; i++){
 		if( i == code_line_num)
 		  mvwprintw(asm_view, (3+ i), 2, "*%s\n", (*asm_text)[i+line_start]);
 		  //mvwprintw(asm_view, (3+(i - line_start)), 2, "*%s\n", (*asm_text)[i]);
@@ -428,7 +426,7 @@ int print_mem(uint32_t** mem, int xpos, int ypos, uint32_t addr_start, int naddr
 		mvwprintw(mem_view, i+ypos, 1+xpos, "(%08x) %08x", (addr_start + (i*4)), (*mem)[i]);
 		mvwprintw(mem_view, i+ypos, 21+xpos, "|");
 		mvwprintw(mem_view, i+ypos, 22+xpos, "%c%c%c%c", ( (char)(*mem)[i] & 0x000000ff ), (char)( (*mem)[i] & 0x0000ff00 ),
-														    ( (char)(*mem)[i] & 0x00ff0000 ), (char)( (*mem)[i] & 0xff000000 ));
+													     ( (char)(*mem)[i] & 0x00ff0000 ), (char)( (*mem)[i] & 0xff000000 ));
 		mvwprintw(mem_view, i+ypos, 26+xpos, "|");
 	} 
 

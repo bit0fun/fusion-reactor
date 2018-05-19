@@ -3,6 +3,7 @@
 
 #include "fusion.h"
 #include "fusion-opc.h"
+#include "parseelf.h"
 
 #define SEXT_14B(N)		( ((N) & 0x3FFF) | ( ( ((N) & 0x2000) ? 0xFFFFC000 : 0 ) ) )
 #define SEXT_16B(N)		( ((N) & 0xFFFF) | ( ( ((N) & 0x8000) ? 0xFFFF0000 : 0 ) ) )
@@ -27,8 +28,8 @@ uint32_t subi( uint32_t rsa, uint16_t imm );
 uint32_t noti( uint16_t imm );
 uint32_t andi( uint32_t rsa, uint16_t imm );
 uint32_t ori( uint32_t rsa, uint16_t imm );
-uint32_t xori( uint32_t rsa, uint16_t imm )
-uint32_t sali( uint32_t rsa, uint16_t imm )
+uint32_t xori( uint32_t rsa, uint16_t imm );
+uint32_t sali( uint32_t rsa, uint16_t imm );
 uint32_t sari( uint32_t rsa, uint16_t imm );
 uint32_t slli( uint32_t rsa, uint16_t imm );
 uint32_t slri( uint32_t rsa, uint16_t imm );

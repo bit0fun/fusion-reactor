@@ -105,12 +105,12 @@ uint32_t lth( uint32_t** data_mem, dataseg_info dseg_i, uint32_t rsa, uint16_t i
 }
 
 uint16_t lh( uint32_t** data_mem, dataseg_info dseg_i, uint32_t rsa, uint16_t imm ){ 
-	uint32_t offset = ((rsa + (uint32_t)(insn->imm & 0x3fff) ) - dseg_i.start) >> 2 ;
+	uint32_t offset = ((rsa + (uint32_t)(imm & 0x3fff) ) - dseg_i.start) >> 2 ;
 	return (uint16_t)(( (*data_mem)[offset] & 0xFFFF0000) >> 16); /* May need to double check, due to running big endian on little endian */
 }
 
 uint8_t lb( uint32_t** data_mem, dataseg_info dseg_i, uint32_t rsa, uint16_t imm ){ 
-	uint32_t offset = ((rsa + (uint32_t)(insn->imm & 0x3fff) ) - dseg_i.start) >> 2 ;
+	uint32_t offset = ((rsa + (uint32_t)(imm & 0x3fff) ) - dseg_i.start) >> 2 ;
 	return (uint8_t)(( (*data_mem)[offset] & 0xFF000000) >> 24); /* May need to double check, due to running big endian on little endian */
 }
 
@@ -169,7 +169,7 @@ uint32_t lunsi( uint16_t imm ){
 	return ( (uint32_t)imm << 16 );
 }
  
-uint32_t lungi( uint16_t ){ 
+uint32_t lungi( uint16_t imm ){ 
 	/* only change upper 2 bytes, save lower */
 	return ( (uint32_t)imm << 16 );
 }
@@ -206,19 +206,27 @@ void j( uint32_t* pc, uint32_t imm ){
 
 /* Returns PC to save */
 uint32_t jal( uint32_t* pc,  uint32_t imm, uint32_t* ra ){
-  (*ra) = (*pc) + 4; /* Save to return address register */
-  (*pc) = SEXT_21B( imm ) + 4;
-  return (*ra); /* return saved address */
+	(*ra) = (*pc) + 4; /* Save to return address register */
+	(*pc) = SEXT_21B( imm ) + 4;
+	return (*ra); /* return saved address */
 }
 
 void jr( uint32_t* pc, uint32_t rsa, uint32_t imm ){
-  (*pc) = (uint32_t)( (*pc) + (int32_t)rsa + (int32_t)( imm & 0x003FFFFF)); 
+	if( rsa == 0 )
+		j( pc, imm);
+	else
+		(*pc) = (uint32_t)( (*pc) + (int32_t)rsa + (int32_t)( imm & 0x003FFFFF)); 
 }
 
 uint32_t jrl( uint32_t* pc, uint32_t rsa, uint32_t imm, uint32_t* ra){
-	(*ra) = (*pc) + 4; /* Save to return address register */
-	(*pc) += rsa + (int32_t)( imm & 0x003FFFFF); 
-	return (*ra);
+	if( rsa == 0 ){
+		return jal( pc, imm);
+	}
+	else{
+		(*ra) = (*pc) + 4; /* Save to return address register */
+		(*pc) += rsa + (int32_t)( imm & 0x003FFFFF); 
+		return (*ra);
+	}
 }
 
 
@@ -238,13 +246,13 @@ int bne( uint32_t* pc, uint32_t rsa, uint32_t rsb, uint16_t imm ){
 }
 
 int bgt( uint32_t* pc, uint32_t rsa, uint32_t rsb, uint16_t imm ){
-	int taken ( ((int32_t)rsa) > ((int32_t)rsb) );
+	int taken = ( ((int32_t)rsa) > ((int32_t)rsb) );
 	(*pc) += ( taken ) ? SEXT_14B( (uint32_t)imm ) : 4;
 	return taken;
 }
 
 int blt( uint32_t* pc, uint32_t rsa, uint32_t rsb, uint16_t imm ){
-	int taken ( ((int32_t)rsa) < ((int32_t)rsb) );
-	(*pc) += (a < b) ? SEXT_14B( (uint32_t)imm ) : 4;
+	int taken = ( ((int32_t)rsa) < ((int32_t)rsb) );
+	(*pc) += ( taken ) ? SEXT_14B( (uint32_t)imm ) : 4;
 	return taken;
 }

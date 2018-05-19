@@ -148,8 +148,7 @@
 #define IS_L_TYPE(i) 	( IS_RMEM_INSN(i)  )
 #define IS_LI_TYPE(i) 	( IS_LI_INSN(i) )
 #define IS_S_TYPE(i) 	( IS_WMEM_INSN(i) )
-#define IS_J_TYPE(i) 	( IS_JMP_INSN(i) )
-#define IS_JL_TYPE(i)   ( IS_JLNK_INSN(i) )
+#define IS_J_TYPE(i) 	( IS_JMP_INSN(i) || IS_JLNK_INSN(i) )
 #define IS_B_TYPE(i) 	( IS_B_INSN(i) )
 #define IS_SYS_TYPE(i) 	( IS_SYS_INSN(i) )
 
@@ -166,9 +165,9 @@
 #define FRMT_MAX			9
 
 /*Defines for Co-Processor ID*/
-#define CPID_MAIN		0
-#define CPID_MACRO		1
-#define CPID_MAX		2
+//#define CPID_MAIN		0
+//#define CPID_MACRO		1
+//#define CPID_MAX		2
 
 /*Defines for Opcodes*/
 #define OPC_INT			0x13 //010011
@@ -184,9 +183,9 @@
 
 
 /*Instruction bits*/
-typedef uint32_t insn_t;
+//typedef uint32_t insn_t;
 
-
+/*
 typedef struct fusion_opc_info_t {
 	const char* name;		//instruction name
 	insn_t index;			//how instruction is determined
@@ -197,7 +196,7 @@ typedef struct fusion_opc_info_t {
 	insn_t opc;			//the actual opcode
 
 } fusion_opc_info_t;
-
+*/
 /*Macro IDs*/
 enum{
 	M_LA,
@@ -207,7 +206,7 @@ enum{
 
 };
 
-
+/*
 extern const fusion_opc_info_t fusion_insn_all[NUM_INSN];
 extern const fusion_opc_info_t fusion_insn_R[NUM_INSN_R]; 
 extern const fusion_opc_info_t fusion_insn_I[NUM_INSN_I];
@@ -218,5 +217,5 @@ extern const fusion_opc_info_t fusion_insn_J[NUM_INSN_J];
 extern const fusion_opc_info_t fusion_insn_JL[NUM_INSN_JL];
 extern const fusion_opc_info_t fusion_insn_B[NUM_INSN_B];
 extern const fusion_opc_info_t fusion_insn_SYS[NUM_INSN_SYS]; 
-
+*/
 #endif
