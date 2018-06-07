@@ -2,6 +2,8 @@
 #include "fusion.h"
 #include "fusion-opc.h"
 #include "emul_error.h"
+#include "opc.h"
+#include "parseelf.h"
 
 #define TRUE (_Bool) 1
 #define FALSE (_Bool) 0
@@ -133,7 +135,7 @@ insn_info insn_pipeline[ MAX_STAGES - 1 ];
 /* Prototypes */
 
 uint32_t fetch( uint32_t** imem, uint32_t pc );
-int execute( insn_info* insn_i, uint32_t** registers, uint32_t* pc, uint32_t* cycleno, uint32_t** data_mem, dataseg_info dseg_i );
+int execute( insn_info* insn_i, uint32_t (*registers)[32], uint32_t* pc, uint32_t* cycleno, uint32_t** data_mem, dataseg_info dseg_i );
 insn_t parse_insn( uint32_t word );
 
 

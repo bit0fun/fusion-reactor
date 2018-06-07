@@ -24,11 +24,11 @@ int	read_elf( const char* filename, uint32_t** text_segp, uint32_t** data_segp, 
 	}
 	 
 	/* Print out section header types for debugging */
-	for(int i = 0; i < elf_hdr->e_shnum; i++){
+//	for(int i = 0; i < elf_hdr->e_shnum; i++){
 		//printf("Section Header %d is of type: %d\n", i,(section_headers[i]->sh_type));
 		//printf("Section is at offset: %08x\n\n", (section_headers[i]->sh_offset));
 		//if( ((section_headers[i]->sh_type) == SHT_PROGBITS) && ((section_headers[i]->sh_flags) & SHF_EXECINSTR ))
-	} 
+//	} 
 
 	/* Create Program Header Table, number of entries found in e_phnum */
 	//printf("There are %d program headers in this file.\n", elf_hdr->e_phnum);
@@ -40,8 +40,12 @@ int	read_elf( const char* filename, uint32_t** text_segp, uint32_t** data_segp, 
 	}
 
 	/* Allocating Text segment */
-	uint32_t* text_seg = malloc( (size_t) (program_headers[0]->p_filesz));
-	get_segment_data(filename, (program_headers[0]), &text_seg );
+	//uint32_t* text_seg = malloc( (size_t) (program_headers[0]->p_filesz));
+	*text_segp = malloc( (size_t) (program_headers[0]->p_filesz));
+		
+
+	//get_segment_data(filename, (program_headers[0]), &text_seg );
+	get_segment_data(filename, (program_headers[0]), text_segp, 1 );
 	//printf("Finished allocating text_segment\n");
 
 	/* Getting total number of instructions*/
@@ -51,8 +55,11 @@ int	read_elf( const char* filename, uint32_t** text_segp, uint32_t** data_segp, 
 
 
 	/* Allocating Data segment */
-	uint32_t* data_seg = malloc( (size_t) (program_headers[1]->p_filesz));
-	get_segment_data(filename, (program_headers[1]), &data_seg );
+	//uint32_t* data_seg = malloc( (size_t) (program_headers[1]->p_filesz));
+	*data_segp = malloc( (size_t) (program_headers[1]->p_filesz));
+	
+//	get_segment_data(filename, (program_headers[1]), &data_seg );
+	get_segment_data(filename, (program_headers[1]), data_segp, 0);
 	//printf("Finished allocating data_segment\n");
 
 	uint32_t pc = elf_hdr->e_entry; /* entry point of program */
@@ -71,11 +78,11 @@ int	read_elf( const char* filename, uint32_t** text_segp, uint32_t** data_segp, 
 	/* Need to start at correct spot in array, so subtract the text segment
 	 * start virtual address, from the program counter */
 //	for(uint32_t i = (pc - text_start); i < num_insn; i++){
-	//printf("Text segment\n");
-		//printf("Virtual address: %08x\n", program_headers[0]->p_vaddr);
-		//printf("Physical address: %08x\n", program_headers[0]->p_paddr);
-	//for(uint32_t i = ((pc - text_start)/4); i < num_insn; i++){
-//		printf("@:%08x |\t %08x\n", ((i*4)+text_start), text_seg[i]);
+//	printf("Text segment\n");
+//		printf("Virtual address: %08x\n", program_headers[0]->p_vaddr);
+//		printf("Physical address: %08x\n", program_headers[0]->p_paddr);
+//	for(uint32_t i = ((pc - text_start)/4); i < num_insn; i++){
+//		printf("@:%08x |\t %08x\n", ((i*4)+text_start), (*text_segp)[i]);
 //	}
 
 //	printf("Data segment\n");
@@ -87,8 +94,8 @@ int	read_elf( const char* filename, uint32_t** text_segp, uint32_t** data_segp, 
 //	}
 
 	/* Final steps to pass data along */
-	*text_segp = text_seg;
-	*data_segp = data_seg;
+//	*text_segp = text_seg;
+//	*data_segp = data_seg;
 	
 	tseg_i->entry = elf_hdr->e_entry;
 	tseg_i->start = text_start;
@@ -212,6 +219,7 @@ int get_phdr(const char* filename, Elf32_Phdr* prg_hdr, Elf32_Ehdr* elf_hdr, int
 	(*prg_hdr)->p_flags		= tmp.p_flags; 
 	(*prg_hdr)->p_align 	= tmp.p_align;
 */
+	printf("Before endian change, Segment offset: %08x\n", (prg_hdr)->p_offset);
 #ifdef HOST_LITTLE_ENDIAN
 	
 	(prg_hdr)->p_type 	= change_endian( (prg_hdr)->p_type );
@@ -258,7 +266,7 @@ int get_section_data(const char* filename, Elf32_Shdr* sec_hdr, uint32_t** secti
 }
 
 /* Gets segment data from file */
-int get_segment_data(const char* filename, Elf32_Phdr* prg_hdr, uint32_t** segment_data ){
+int get_segment_data(const char* filename, Elf32_Phdr* prg_hdr, uint32_t** segment_data, int iftext ){
 	FILE* fp = fopen(filename, "rb");
 	if(fp == NULL){
 		printf("Couldn't open ELF file to read section data.\n");
@@ -274,6 +282,7 @@ int get_segment_data(const char* filename, Elf32_Phdr* prg_hdr, uint32_t** segme
 
 //	void* tmp = (void *)malloc( seg_size );	
 	/* Put file pointer to correct offset */
+	printf("Segment offset: %08x\n", (prg_hdr)->p_offset);
 	fseek(fp, ( (prg_hdr)->p_offset), SEEK_SET);
 //	fread( tmp, seg_size, 1, fp);
 	fread( *segment_data, seg_size, 1, fp);

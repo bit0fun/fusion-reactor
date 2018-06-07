@@ -66,5 +66,7 @@ uint32_t jrl( uint32_t* pc, uint32_t rsa, uint32_t imm, uint32_t* ra);
 int beq( uint32_t* pc, uint32_t rsa, uint32_t rsb, uint16_t imm );
 int bne( uint32_t* pc, uint32_t rsa, uint32_t rsb, uint16_t imm );
 int bgt( uint32_t* pc, uint32_t rsa, uint32_t rsb, uint16_t imm );
+int blt( uint32_t* pc, uint32_t rsa, uint32_t rsb, uint16_t imm );
+
 
 #endif /* OPC_H */

@@ -90,9 +90,63 @@ int main(int argc, char** argv){
 	data_mem = calloc( DMEM_SIZE, sizeof( uint32_t ) );	
 	insn_mem = NULL; /* needs to be allocated after getting ELF file */
 
-	
-	uint32_t	pc;
 
+	
+	/* Get assembly file to display */
+	if(argc != 2) {
+		cleanup();	
+		endwin();
+		printf("Usage: fusion-reactor <file.elf>\n ");
+		return -1;
+	}
+
+	/* reduce size, since it isn't necessary for such a large buffer */
+	//int asm_file_len = strlen( argv[1] );
+	//char* asm_filename = (char*) calloc(asm_file_len, sizeof(char));
+	//strncpy(asm_filename, (const char*) argv[1] , (size_t) asm_file_len);
+	
+	//asm_line_count = count_line_number( asm_filename );
+	//read_asm_file(asm_filename, &asm_text);
+	
+	/*Create objdump file to be printed in code area */
+	char create_objdump_file_command[512] = "fusion-elf-objdump -d \0";
+	//if( sizeof( argv[2] ) > 478 ){
+	//	return -1;
+	//}
+	strncat(create_objdump_file_command, argv[1], 478);
+	strncat(create_objdump_file_command, " >> code.txt\0", 13);
+	if(system(create_objdump_file_command))
+		printf("Could not create objdump file");	  
+	
+    asm_line_count = count_line_number( "code.txt" );
+	read_asm_file("code.txt", &asm_text);
+
+//	int elf_file_len = strlen( argv[2] );
+//	char* elf_filename = (char*) calloc(asm_file_len, sizeof(char));
+//	strncpy(elf_filename, (const char*) argv[1] , (size_t) asm_file_len);
+
+
+	/* Initializing ELF File */
+	int result = read_elf(argv[1], &insn_mem, &data_mem, &im_info, &dmem_info);
+	if( result ){
+		printf("Cannot parse elf\n");
+	}
+
+
+	entry_point = im_info.entry;
+	int cycleno = 0;
+	pc = im_info.entry;
+    code_line_num = 0;
+	char* code_win_title = "Assembly Code";
+	char input;
+	insn_info insn_i;
+/* Debugging memory passed 
+	printf("\nPassed memory\n");
+	for(uint32_t i = ((pc - entry_point)/4); i < (im_info.end - im_info.entry)/4 ; i++){
+		printf("@:%08x |\t %08x\n", ((i*4)+entry_point), (insn_mem)[i]);
+	}
+*/
+	/* Starting ncurses */
 
 
 	/* Getting parent window sizes */
@@ -125,61 +179,23 @@ int main(int argc, char** argv){
 	mvwprintw(menu_bar, 0, (parent_x / 2) - 7, "Fusion-Reactor");
 	refresh();
 	refresh_all();
-	
-	/* Get assembly file to display */
-	if(argc != 2) {
-		cleanup();	
-		endwin();
-		printf("Usage: fusion-reactor <file.elf>\n ");
-		return -1;
-	}
 
-	/* reduce size, since it isn't necessary for such a large buffer */
-	//int asm_file_len = strlen( argv[1] );
-	//char* asm_filename = (char*) calloc(asm_file_len, sizeof(char));
-	//strncpy(asm_filename, (const char*) argv[1] , (size_t) asm_file_len);
-	
-	//asm_line_count = count_line_number( asm_filename );
-	//read_asm_file(asm_filename, &asm_text);
-	
-	/*Create objdump file to be printed in code area */
-	char create_objdump_file_command[256] = "fusion-elf-objdump -d  ";
-	strcat(create_objdump_file_command, argv[2]);
-	strcat(create_objdump_file_command, " >> code.txt");
-	if(!system(create_objdump_file_command))
-		printf("Could not create objdump file");	  
-	
-    asm_line_count = count_line_number( "code.txt" );
-	read_asm_file("code.txt", &asm_text);
-
-//	int elf_file_len = strlen( argv[2] );
-//	char* elf_filename = (char*) calloc(asm_file_len, sizeof(char));
-//	strncpy(elf_filename, (const char*) argv[2] , (size_t) asm_file_len);
-
-
-	/* Initializing ELF File */
-	int result = read_elf(argv[2], &insn_mem, &data_mem, &im_info, &dmem_info);
-	if( result ){
-		printf("Cannot parse elf\n");
-	}
-	pc = im_info.entry;
-	int cycleno = 0;
-    entry_point = pc;	
-    code_line_num = 11;
-	char* code_win_title = "Assembly Code";
-	char input;
-	insn_info insn_i;
-
+	uint32_t imem_offset = entry_point - im_info.start; /* needed to find proper starting position */
+	code_line_num += (pc - entry_point + imem_offset) /4;
+	insn_i.word = insn_mem[ code_line_num ]; /* Saving instruction word */
+	uint32_t old_pc;
 	while( 1 ){
-		code_line_num += (pc  - entry_point)/4;
-		insn_i.word = insn_mem[ code_line_num ]; /* Saving instruction word */
+		mvwprintw(reg_view, 5, 41, "Line num: %d", code_line_num);
+		mvwprintw(reg_view, 6, 41, "Insn: %08x", insn_i.word);
+		mvwprintw(reg_view, 2, 41, "size of mem:\t%08x", (im_info.end - im_info.start) );			
 		/* Drawing everything required before input */
 		input = getch();
 		if( check_run_key(input) ){
 
 			mvwprintw(asm_view, 1,  parent_y - MENU_BAR_H-1 - strlen(code_win_title)/2, code_win_title);
-			display_asm( &asm_text, code_line_num - 11, parent_y - MENU_BAR_H-1 , asm_line_count);	
-	 	//	display_asm( &asm_text, 0, parent_y - MENU_BAR_H-1 , asm_line_count);	
+			display_asm( &asm_text, code_line_num, (parent_y - MENU_BAR_H-1) + code_line_num, asm_line_count);	
+	// 		display_asm( &asm_text, 0, parent_y - MENU_BAR_H-1 , asm_line_count);	
+
 			print_reg( registers, pc);
 			print_mem(&data_mem, 1, 1, dmem_info.start,  (parent_y - 16 - MENU_BAR_H), dmem_info.start);
 			
@@ -188,24 +204,48 @@ int main(int argc, char** argv){
 			break;
 		} else if( input == 's' ){
 			/* Stepping through program */
+			old_pc = pc; /* save old PC */
+			mvwprintw(mem_view, 2, 28, "Insn: %08x",insn_i.word );
 
-			result = execute( &insn_i, &(registers), &pc, &cycleno, &data_mem, dseg_i );
-			if( result < 0 ){
-				mvwprintw(mem_view, 1, 20, "Invalid Instruction. Halting execution");
+			result = execute( &insn_i, (&registers), &pc, &cycleno, &data_mem, dmem_info );
+			print_reg( registers, pc);
+			print_mem(&data_mem, 1, 1, dmem_info.start,  (parent_y - 16 - MENU_BAR_H), dmem_info.start);
+			
+			if( result == -1 ){
+				mvwprintw(mem_view, 1, 20, "Internal Error. Halting execution");
 				do{
 					input = getch();
 				} while( input != 'q'); /* Wait for user to quit */
+			
 				cleanup();
 				break;
-			} else if( result == 1){
+			} else if( result == EM_INT ){
+				mvwprintw(mem_view, 1, 20, "Invalid Arithmetic Instruction.");
+			} else if( result == EM_IMM ){
+				mvwprintw(mem_view, 1, 20, "Invalid Immediate Instruction.");
+			} else if( result == EM_LD ){
+				mvwprintw(mem_view, 1, 20, "Invalid Load Instruction.");
+			} else if( result == EM_ST ){
+				mvwprintw(mem_view, 1, 20, "Invalid Store Instruction.");
+			} else if( result == EM_LI ){
+				mvwprintw(mem_view, 1, 20, "Invalid Load Immediate Instruction.");
+			} else if( result == EM_B ){
+				mvwprintw(mem_view, 1, 20, "Invalid Branch Instruction.");
+			} else if( result == EM_SYS ){
+				mvwprintw(mem_view, 1, 20, "Invalid System Instruction.");
+			} else if( result == EM_NCPID ){
+				mvwprintw(mem_view, 1, 20, "Invalid Co-Processor ID.");
+			} else if( result == EM_CP ){
 				mvwprintw(mem_view, 1, 20, "Co-Processor Instructions are not available.");
 			}
 		} else {
-//			mvwprintw(mem_view, 1, 1, "Key pressed: %c\n", input);
+			mvwprintw(mem_view, 1, 1, "Key pressed: %c\n", input);
 		}
 		draw_borders();
 		refresh_all();
 		refresh();
+		code_line_num = (pc - entry_point + imem_offset )/4;
+		insn_i.word = insn_mem[ code_line_num ]; /* Saving instruction word */
 	}
 	/* Close window */
 	endwin();
@@ -380,14 +420,14 @@ int display_asm( char*** asm_text, int line_start, int line_end, int line_max){
 	int i;
 	/* Write out lines */
 	for(i = line_start; i < wlinenum; i++){
-		if( i == code_line_num)
-		  mvwprintw(asm_view, (3+ i), 2, "*%s\n", (*asm_text)[i+line_start]);
-		  //mvwprintw(asm_view, (3+(i - line_start)), 2, "*%s\n", (*asm_text)[i]);
+		if( i == code_line_num - line_start)
+		 // mvwprintw(asm_view, (3+ i), 2, "*%s\n", (*asm_text)[i+line_start]);
+		  mvwprintw(asm_view, (3+(i - line_start)), 2, "*%s\n", (*asm_text)[i]);
 		else
-		  mvwprintw(asm_view, (3+ i), 3, "%s\n", (*asm_text)[i+line_start]);			
-		  //mvwprintw(asm_view, (3+(i - line_start)), 3, "%s\n", (*asm_text)[i]);			
+		  //mvwprintw(asm_view, (3+ i), 3, "%s\n", (*asm_text)[i+line_start]);			
+		  mvwprintw(asm_view, (3+(i - line_start)), 3, "%s\n", (*asm_text)[i]);			
 	}
-	
+
 	return 0;
 }
 
@@ -403,6 +443,7 @@ int print_reg(uint32_t reg[32],  uint32_t pc){
 		mvwprintw(reg_view, i, 18, "r[%d]:\t%08x", i+16, reg[i+16]);			
 	}
 	mvwprintw(reg_view, 1, 41, "pc:\t%08x", pc);			
+
 
 
 }

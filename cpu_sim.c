@@ -7,17 +7,21 @@ uint32_t fetch( uint32_t** imem, uint32_t pc ){
 
 /* Simulation execution of instructions for pure functionality
  * of the ISA. no additional features are to be used here */
-int execute( insn_info* insn_i, uint32_t** registers, uint32_t* pc, uint32_t* cycleno, uint32_t** data_mem, dataseg_info dseg_i ){	
+int execute( insn_info* insn_i, uint32_t (*registers)[32], uint32_t* pc, uint32_t* cycleno, uint32_t** data_mem, dataseg_info dseg_i ){	
 	uint32_t insn_word = insn_i->word;
 	uint32_t* gpregf = (*registers);
 	insn_t insn_parts = parse_insn( insn_word );	
 	uint8_t opcode = GET_OPC( insn_word );	
+	int rd;
+	uint32_t rsa;
+	uint32_t rsb;
+	uint16_t imm;
 	switch ( opcode ){
 		/* Integer \ Arithmetic Instructions */
 		case OPC_INT :
-			int		 rd  = insn_parts.rtype.rd;
-			uint32_t rsa = (*registers)[insn_parts.rtype.rsa];
-			uint32_t rsb = (*registers)[insn_parts.rtype.rsb];
+			rd  = insn_parts.rtype.rd;
+			rsa = (*registers)[insn_parts.rtype.rsa];
+			rsb = (*registers)[insn_parts.rtype.rsb];
 			
 			/* Determine ALUOP */
 			switch ( insn_parts.rtype.aluop ) {
@@ -56,14 +60,16 @@ int execute( insn_info* insn_i, uint32_t** registers, uint32_t* pc, uint32_t* cy
 					break;
 				default :
 					/* Return error of incorrect Arithmetic instruction */
-					return 
+					*pc += 4;	/* Increment PC */
+					return EM_INT; 
 					break;
 			}
+			*pc += 4;	/* Increment PC */
 			break;
 		case OPC_IMM :
-			int 		rd 	= insn_parts.itype.rd;
-			uint32_t 	rsa	= (*registers)[insn_parts.itype.rsa];
-			uint16_t 	imm	= (*registers)[insn_parts.itype.rd];
+			rd 	= insn_parts.itype.rd;
+			rsa	= (*registers)[insn_parts.itype.rsa];
+			imm	= (*registers)[insn_parts.itype.rd];
 			/* Determine ALUOP */
 			switch ( insn_parts.rtype.aluop ) {
 				case 0 :
@@ -73,7 +79,7 @@ int execute( insn_info* insn_i, uint32_t** registers, uint32_t* pc, uint32_t* cy
 					(*registers)[rd] = subi( rsa, imm );
 					break;
 				case  4 :
-					(*registers)[rd] = noti( rsa, imm );
+					(*registers)[rd] = noti( imm );
 					break;	   
 				case  5 :
  					(*registers)[rd] = andi( rsa, imm );
@@ -100,14 +106,16 @@ int execute( insn_info* insn_i, uint32_t** registers, uint32_t* pc, uint32_t* cy
  					(*registers)[rd] = compi( rsa, imm );
 					break;
 				default :
-					/* default to NOP */
+					*pc += 4;	/* Increment PC */
+					return EM_IMM;
 					break;
 			}
+			*pc += 4;	/* Increment PC */
 			break;
 		case OPC_LD :
-			int 		rd	= insn_parts.ltype.rd;
-			uint32_t 	rsa	= (*registers)[insn_parts.ltype.rsa];
-			uint16_t 	imm	= (*registers)[insn_parts.ltype.rd];
+			rd	= insn_parts.ltype.rd;
+			rsa	= (*registers)[insn_parts.ltype.rsa];
+			imm	= (*registers)[insn_parts.ltype.rd];
 
 			/* Finding size of data to read from memory */
 			switch( insn_parts.ltype.funct ){
@@ -128,58 +136,64 @@ int execute( insn_info* insn_i, uint32_t** registers, uint32_t* pc, uint32_t* cy
 					(*registers)[rd] = lb(data_mem, dseg_i, rsa, imm);
 					break;
 				default :
+					*pc += 4;	/* Increment PC */
+					return EM_LD;
 					break;
 			}
+			*pc += 4;	/* Increment PC */
 			break;
 		case OPC_LI :
-			int 		rd	= insn_parts.litype.rd;
-			uint16_t 	imm = insn_parts.litype.imm;
+			rd	= insn_parts.litype.rd;
+			imm = insn_parts.litype.imm;
 
 			switch( insn_parts.litype.dsel ) {
 				case 0 :
-					(*registers)li( imm );
+					(*registers)[rd] = li( imm );
 					break;
 				case 1 :
-					(*registers)lsi( imm );
+					(*registers)[rd] = lsi( imm );
 					break;
 				case 2 :
-					(*registers)lgi( imm );
+					(*registers)[rd] = lgi( imm );
 					break;
 				case 4 :
-					(*registers)lui( imm );
+					(*registers)[rd] = lui( imm );
 					break;
 				case 5 :
-					(*registers)lusi( imm );
+					(*registers)[rd] = lusi( imm );
 					break;
 				case 6 :
-					(*registers)lugi( imm );
+					(*registers)[rd] = lugi( imm );
 					break;
 				case 8 :
-					(*registers)lni( imm );
+					(*registers)[rd] = lni( imm );
 					break;
 				case 9 :
-					(*registers)lnsi( imm );
+					(*registers)[rd] = lnsi( imm );
 					break;
 				case 10 :
-					(*registers)lngi( imm );
+					(*registers)[rd] = lngi( imm );
 					break;
 				case 12 :
-					(*registers)luni( imm );
+					(*registers)[rd] = luni( imm );
 					break;
 				case 13 :
-					(*registers)lunsi( imm );
+					(*registers)[rd] = lunsi( imm );
 					break;
 				case 14 :
-					(*registers)lungi( imm );
+					(*registers)[rd] = lungi( imm );
 					break;
 				default :
+					*pc += 4;	/* Increment PC */
+					return EM_LI;
 					break;
 			}
+			*pc += 4;	/* Increment PC */
 			break;
 		case OPC_ST :
-			uint32_t rsa = (*registers)[insn_parts.stype.rsa];
-			uint32_t rsb = (*registers)[insn_parts.stype.rsb];
-			uint16_t imm = insn_parts.stype.imm;
+			rsa = (*registers)[insn_parts.stype.rsa];
+			rsb = (*registers)[insn_parts.stype.rsb];
+			imm = insn_parts.stype.imm;
 			/* Finding size of data to write to memory */
 			switch( insn_parts.ltype.funct ){
 				/* Word */
@@ -199,8 +213,11 @@ int execute( insn_info* insn_i, uint32_t** registers, uint32_t* pc, uint32_t* cy
 					sb(data_mem, dseg_i, rsa, rsb, imm);
 					break;
 				default :
+					*pc += 4;	/* Increment PC */
+					return EM_ST;
 					break;
 			}
+			*pc += 4;	/* Increment PC */
 			break;
 		case OPC_JMP :
 			/* Default to Jump Register, and if RSA = 0, function will alter it
@@ -210,15 +227,15 @@ int execute( insn_info* insn_i, uint32_t** registers, uint32_t* pc, uint32_t* cy
 		case OPC_JLNK :
 			/* Default to Jump Register and Link, and if RSA = 0, function will alter it
 			 * to normal Jump and Link */
-			jrl( pc, (*registers)[insn_parts.jtype.rsa], insn_parts.jtype.imm );
+			jrl( pc, (*registers)[insn_parts.jtype.rsa], insn_parts.jtype.imm, (registers)[4] );
 			break;
 		case OPC_BRANCH :
 			/* Can sample branch taken, at the moment this is not used.
 			 * Can be helpful for debugging ideas for branch predictors or 
 			 * performance with branches */
-			uint32_t rsa = (*registers)[ insn_parts.btype.rsa];
-			uint32_t rsb = (*registers)[ insn_parts.btype.rsb];
-			uint16_t imm = insn_parts.btype.imm;
+			rsa = (*registers)[ insn_parts.btype.rsa];
+			rsb = (*registers)[ insn_parts.btype.rsb];
+			imm = insn_parts.btype.imm;
 			/* Determining Branch type */
 			switch( insn_parts.btype.funct ) {
 				case 0 :
@@ -233,13 +250,20 @@ int execute( insn_info* insn_i, uint32_t** registers, uint32_t* pc, uint32_t* cy
 				case 3 :
 					blt( pc, rsa, rsb, imm);
 					break;
+				default :
+					return EM_B;
 			}
 			break;
 		case OPC_SYS :
+			/* No system instructions yet, so error */
+			*pc += 4;	/* Increment PC */
+			return EM_SYS;
 			break;
 		default :
-			return -1;
-	
+			/* Must be co-processor instruction, return error */
+			*pc += 4;	/* Increment PC */
+			return EM_CP;
+			break;
 	}
 }
 

@@ -220,7 +220,7 @@ void jr( uint32_t* pc, uint32_t rsa, uint32_t imm ){
 
 uint32_t jrl( uint32_t* pc, uint32_t rsa, uint32_t imm, uint32_t* ra){
 	if( rsa == 0 ){
-		return jal( pc, imm);
+		return jal( pc, imm, ra);
 	}
 	else{
 		(*ra) = (*pc) + 4; /* Save to return address register */
