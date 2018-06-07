@@ -1,4 +1,5 @@
 #include "stdint.h"
+#include "stdbool.h"
 #include "fusion.h"
 #include "fusion-opc.h"
 #include "emul_error.h"
@@ -11,7 +12,7 @@
 /* Simulation Settings */
 typedef struct {
 	_Bool	pipeline;	/* Enabling pipline simulation */
-	_Bool	oooe;		/* Enable Out of order Execution*/	
+	_Bool	oooe;		/* Enable Out of order Execution*/
 } sim_set;
 
 /* Enumberation of Instruction Execution Processors */
@@ -130,12 +131,10 @@ typedef struct {
 
 
 /* Instructions in flight for pipelined machine */
-insn_info insn_pipeline[ MAX_STAGES - 1 ]; 
+insn_info insn_pipeline[ MAX_STAGES - 1 ];
 
 /* Prototypes */
 
 uint32_t fetch( uint32_t** imem, uint32_t pc );
 int execute( insn_info* insn_i, uint32_t (*registers)[32], uint32_t* pc, uint32_t* cycleno, uint32_t** data_mem, dataseg_info dseg_i );
 insn_t parse_insn( uint32_t word );
-
-

@@ -7,11 +7,11 @@ uint32_t fetch( uint32_t** imem, uint32_t pc ){
 
 /* Simulation execution of instructions for pure functionality
  * of the ISA. no additional features are to be used here */
-int execute( insn_info* insn_i, uint32_t (*registers)[32], uint32_t* pc, uint32_t* cycleno, uint32_t** data_mem, dataseg_info dseg_i ){	
+int execute( insn_info* insn_i, uint32_t (*registers)[32], uint32_t* pc, uint32_t* cycleno, uint32_t** data_mem, dataseg_info dseg_i ){
 	uint32_t insn_word = insn_i->word;
 	uint32_t* gpregf = (*registers);
-	insn_t insn_parts = parse_insn( insn_word );	
-	uint8_t opcode = GET_OPC( insn_word );	
+	insn_t insn_parts = parse_insn( insn_word );
+	uint8_t opcode = GET_OPC( insn_word );
 	int rd;
 	uint32_t rsa;
 	uint32_t rsb;
@@ -22,30 +22,30 @@ int execute( insn_info* insn_i, uint32_t (*registers)[32], uint32_t* pc, uint32_
 			rd  = insn_parts.rtype.rd;
 			rsa = (*registers)[insn_parts.rtype.rsa];
 			rsb = (*registers)[insn_parts.rtype.rsb];
-			
+
 			/* Determine ALUOP */
 			switch ( insn_parts.rtype.aluop ) {
 				case 0 :
-					(*registers)[rd] = add( rsa, rsb );	
+					gpregf[rd] = add( rsa, rsb );
 					break;
 				case  1 :
-					(*registers)[rd] = sub( rsa, rsb );
+					gpregf[rd] = sub( rsa, rsb );
 					break;
 				case  4 :
-					(*registers)[rd] = not( rsa, rsb );
-					break;	   
+					gpregf[rd] = _not( rsa, rsb );
+					break;
 				case  5 :
- 					(*registers)[rd] = and( rsa, rsb );
+ 					gpregf[rd] = _and( rsa, rsb );
 					break;
 				case  6 :
- 					(*registers)[rd] = or( rsa, rsb );
+ 					gpregf[rd] = _or( rsa, rsb );
 					break;
 				case  7 :
- 					(*registers)[rd] = xor( rsa, rsb );
+ 					(*registers)[rd] = _xor( rsa, rsb );
 					break;
 				case  8 :
  					(*registers)[rd] = sal( rsa, rsb );
-					break;	   
+					break;
 				case  9 :
  					(*registers)[rd] = sar( rsa, rsb );
 					break;
@@ -61,26 +61,27 @@ int execute( insn_info* insn_i, uint32_t (*registers)[32], uint32_t* pc, uint32_
 				default :
 					/* Return error of incorrect Arithmetic instruction */
 					*pc += 4;	/* Increment PC */
-					return EM_INT; 
+					return EM_INT;
 					break;
 			}
 			*pc += 4;	/* Increment PC */
 			break;
 		case OPC_IMM :
-			rd 	= insn_parts.itype.rd;
+			imm = insn_parts.itype.imm;
+			rd	= insn_parts.itype.rd;
 			rsa	= (*registers)[insn_parts.itype.rsa];
-			imm	= (*registers)[insn_parts.itype.rd];
+
 			/* Determine ALUOP */
 			switch ( insn_parts.rtype.aluop ) {
 				case 0 :
-					(*registers)[rd] = addi( rsa, imm );	
+					(*registers)[rd] = addi( rsa, imm );
 					break;
 				case  1 :
 					(*registers)[rd] = subi( rsa, imm );
 					break;
 				case  4 :
 					(*registers)[rd] = noti( imm );
-					break;	   
+					break;
 				case  5 :
  					(*registers)[rd] = andi( rsa, imm );
 					break;
@@ -92,7 +93,7 @@ int execute( insn_info* insn_i, uint32_t (*registers)[32], uint32_t* pc, uint32_
 					break;
 				case  8 :
  					(*registers)[rd] = sali( rsa, imm );
-					break;	   
+					break;
 				case  9 :
  					(*registers)[rd] = sari( rsa, imm );
 					break;
@@ -231,7 +232,7 @@ int execute( insn_info* insn_i, uint32_t (*registers)[32], uint32_t* pc, uint32_
 			break;
 		case OPC_BRANCH :
 			/* Can sample branch taken, at the moment this is not used.
-			 * Can be helpful for debugging ideas for branch predictors or 
+			 * Can be helpful for debugging ideas for branch predictors or
 			 * performance with branches */
 			rsa = (*registers)[ insn_parts.btype.rsa];
 			rsb = (*registers)[ insn_parts.btype.rsb];
@@ -264,6 +265,7 @@ int execute( insn_info* insn_i, uint32_t (*registers)[32], uint32_t* pc, uint32_
 			*pc += 4;	/* Increment PC */
 			return EM_CP;
 			break;
+
 	}
 }
 
@@ -280,8 +282,9 @@ insn_t parse_insn( uint32_t word ){
 		insn.rtype.aluop 	= (uint8_t)GET_ALUOP(word);
 	} else if( IS_I_TYPE(word) ) { //need to get alu op to determine instruction
 		insn.itype.opcode 	= (uint8_t)GET_OPC(word);
-		insn.itype.rd 		= (uint8_t)GET_RD(word);
-		insn.itype.rsa		= (uint8_t)GET_RSA(word);
+		insn.itype.rd 		= GET_RD(word);
+
+		insn.itype.rsa		= GET_RSA(word);
 		insn.itype.imm		= (uint16_t)GET_IMM_I(word);
 		insn.itype.aluop	= (uint8_t)GET_ALUOP(word);
 	} else if( IS_L_TYPE(word) ) {
@@ -312,7 +315,7 @@ insn_t parse_insn( uint32_t word ){
 		else {	/* Something wrong, create nop */
 			insn.jtype.opcode = (uint8_t) 0; /* zero in opcode will always be nop */
 		}
-	
+
 	} else if( IS_B_TYPE(word) ) {
 		insn.btype.opcode	= (uint8_t)GET_OPC(word);
 		insn.btype.rsa		= (uint8_t)GET_RSA(word);
@@ -320,7 +323,7 @@ insn_t parse_insn( uint32_t word ){
 		insn.btype.imm		= (uint16_t)GET_IMM_B(word);
 		insn.btype.funct	= (uint8_t)GET_FUNCT_B(word);
 	} else if( IS_SYS_TYPE(word) ) {
-		insn.systype.opcode	= (uint8_t)GET_OPC(word);	
+		insn.systype.opcode	= (uint8_t)GET_OPC(word);
 		insn.systype.rd		= (uint8_t)GET_RD(word);
 		insn.systype.rsa	= (uint8_t)GET_RSA(word);
 		insn.systype.imm	= (uint8_t)GET_IMM_SYS(word);
