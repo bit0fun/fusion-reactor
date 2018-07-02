@@ -183,7 +183,7 @@ int main(int argc, char** argv){
 	uint32_t imem_offset = entry_point - im_info.start; /* needed to find proper starting position */
 	code_line_num += (pc - entry_point + imem_offset) /4;
 	insn_i.word = insn_mem[ code_line_num ]; /* Saving instruction word */
-	uint32_t old_pc;
+	uint32_t old_pc = 0;
 	while( 1 ){
 		mvwprintw(reg_view, 5, 41, "Line num: %d", code_line_num);
 		mvwprintw(reg_view, 6, 41, "Insn: %08x", insn_i.word);
@@ -211,6 +211,13 @@ int main(int argc, char** argv){
 			print_reg( registers, pc);
 			print_mem(&data_mem, 1, 1, dmem_info.start,  (parent_y - 16 - MENU_BAR_H), dmem_info.start);
 			
+			/* Used until ABI is created for syscall exiting program */
+			if( (pc - entry_point)/4 >= (im_info.end - im_info.entry)/4 ) {
+				mvwprintw(mem_view, 1, 20, "Program exit. Number of cycles: %d", cycleno);
+				cleanup();
+				break;
+			}		
+
 			if( result == -1 ){
 				mvwprintw(mem_view, 1, 20, "Internal Error. Halting execution");
 				do{

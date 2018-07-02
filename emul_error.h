@@ -3,6 +3,7 @@
 
 /* Defines for emulation error codes */
 enum {
+	EM_OK,			/* No error */
 	EM_INT,			/* Invalid Arithmetic Instruction */
 	EM_IMM,			/* Invalid Immediate Instruction */
 	EM_LD,			/* Invalid Load Instruction */

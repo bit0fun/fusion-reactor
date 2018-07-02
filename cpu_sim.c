@@ -259,12 +259,16 @@ int execute( insn_info* insn_i, uint32_t (*registers)[32], uint32_t* pc, uint32_
 			*pc += 4;	/* Increment PC */
 			return EM_SYS;
 			break;
+		case 0x00: 	/* Explicit NO-OP*/
+			*pc += 4;
+			break;
 		default :
 			/* Must be co-processor instruction, return error */
 			*pc += 4;	/* Increment PC */
 			return EM_CP;
 			break;
 	}
+	return 0;
 }
 
 /* Parses instruction, finds the type and returns the unionized struct
