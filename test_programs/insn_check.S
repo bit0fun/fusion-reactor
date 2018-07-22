@@ -11,7 +11,7 @@
 ##  Author: Dylan Wadler												     ##
 ##  Email:	dylan@fusion-core.org                                            ##
 ###############################################################################
-.globl __start                                                               
+.globl __start
 
 .data
 
@@ -22,7 +22,7 @@ var2:	.word	0x00000000 #will have cafebabe
 .text
 
 #starting program | each subsequent label will be the proper test
-__start:	
+__start:
 	nop
 	nop
 
@@ -32,7 +32,7 @@ __start:
 ## It is also assumed each register is initialized to 0 at the start.		 ##
 ###############################################################################
 
-reg_test:	
+reg_test:
 	addi	low0,	zero,	0x2a	#it's the meaning of life, in hex of course
 	addi	hi0,	zero,	0x2a
 	addi	tmp7,	zero,	0x2a
@@ -190,7 +190,7 @@ integer_test:
 	and		gr5,	gr1,	gr0
 	or		gr6,	gr1,	gr0
 	xor		gr7,	gr1,	gr0
-	comp	gr8,	gr1,	gr0	
+	comp	gr8,	gr1,	gr0
 
 #need to set up other registers with values to make the next instruction tests
 #work properly
@@ -204,8 +204,8 @@ integer_test:
 	sar		tmp2,	gr0,	tmp0
 	sll		tmp3,	gr0,	tmp0
 	slr		tmp4,	gr0,	tmp0
-	
-#removing addu and subu since there is no difference between 
+
+#removing addu and subu since there is no difference between
 #unsigned and signed addition, subtraction
 
 clear_regs_2:
@@ -368,7 +368,7 @@ clear_regs_4:
 	nop
 #forward jump
 jump_branch_test:
-	j		far_address	
+	j		far_address
 	nop
 	nop
 #testing branching forwards
@@ -385,8 +385,8 @@ bgt_point:
 	nop
 	nop
 blt_point:	#mmmm blts. could go for one right about now
-	blt		zero,	gr0,	blt_test_point	
-	nop		
+	blt		zero,	gr0,	blt_test_point
+	nop
 	nop
 	nop
 	nop
@@ -400,11 +400,11 @@ bne_test_point:
 	bne		zero,	gr0,	bgt_point
 	nop
 	nop
-bgt_test_point:	
+bgt_test_point:
 	bgt		gr0,	zero,	blt_point
 	nop
 	nop
-blt_test_point:	
+blt_test_point:
 	blt		zero,	gr0,	blt_point
 	nop
 	nop

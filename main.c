@@ -36,7 +36,7 @@ WINDOW *reg_view;
 WINDOW *mem_view;
 
 
-/* Sizes and placement for windows
+/* Default sizes and placement for windows
 *  The widths are percentages
 *  Positions and heights are mostly absolute
 *  It should be noted that the values accomodate borders*/
@@ -184,16 +184,28 @@ int main(int argc, char** argv){
 	code_line_num = (pc - entry_point + imem_offset) /4;
 	insn_i.word = insn_mem[ code_line_num ]; /* Saving instruction word */
 	uint32_t old_pc;
+	int run_prg = 0; /* Flag for waiting to start running program */
+	int end_prg = 0; /* Flag for determining program has ended */
 	while( 1 ){
-		mvwprintw(reg_view, 5, 41, "Line num: %d", code_line_num);
-		mvwprintw(reg_view, 6, 41, "Insn: %08x", insn_i.word);
-		mvwprintw(reg_view, 2, 41, "size of mem:\t%08x", (im_info.end - im_info.start) );
-		/* Drawing everything required before input */
+		if( run_prg ){
+			/* Drawing titles and various other info */
+			mvwprintw(reg_view, 5, 41, "Line num: %d", code_line_num);
+			mvwprintw(reg_view, 6, 41, "Insn: %08x", insn_i.word);
+			mvwprintw(reg_view, 2, 41, "size of mem:\t%08x", (im_info.end - im_info.start) );
+			mvwprintw(asm_view, 1,  parent_y - MENU_BAR_H-1 - strlen(code_win_title)/2, code_win_title);
+
+			/* Draw debug info for program */
+			display_asm( &asm_text, code_line_num - 20, (parent_y - MENU_BAR_H-1) + code_line_num - 20, asm_line_count);
+			print_reg( registers, pc);
+			print_mem(&data_mem, 1, 1, dmem_info.start,  (parent_y - 16 - MENU_BAR_H), dmem_info.start);
+		} else {
+
+		}
 		input = getch();
 		if( check_run_key(input) ){
-
-			mvwprintw(asm_view, 1,  parent_y - MENU_BAR_H-1 - strlen(code_win_title)/2, code_win_title);
-			display_asm( &asm_text, code_line_num - 20, (parent_y - MENU_BAR_H-1) + code_line_num - 20, asm_line_count);
+			run_prg = 1;
+			//mvwprintw(asm_view, 1,  parent_y - MENU_BAR_H-1 - strlen(code_win_title)/2, code_win_title);
+			//display_asm( &asm_text, code_line_num - 20, (parent_y - MENU_BAR_H-1) + code_line_num - 20, asm_line_count);
 	// 		display_asm( &asm_text, 0, parent_y - MENU_BAR_H-1 , asm_line_count);
 
 			print_reg( registers, pc);
@@ -204,6 +216,7 @@ int main(int argc, char** argv){
 			break;
 		} else if( input == 's' ){
 			/* Stepping through program */
+			cycleno++;
 			old_pc = pc; /* save old PC */
 			mvwprintw(mem_view, 2, 28, "Insn: %08x",insn_i.word );
 
@@ -211,8 +224,24 @@ int main(int argc, char** argv){
 			print_reg( registers, pc);
 			print_mem(&data_mem, 1, 1, dmem_info.start,  (parent_y - 16 - MENU_BAR_H), dmem_info.start);
 
+			/* Used until ABI is created for syscall to exit program */
+			if( (pc - entry_point)/4 >= (im_info.end - im_info.entry)/4 ){
+				mvwprintw(mem_view, 6, 41, "Program exit. Number of cycles: %d", cycleno);
+				mvwprintw(mem_view, 7, 41, "Press q to quit simulator");
+				draw_borders();
+				refresh_all();
+				refresh();
+				do{
+					input = getch();
+				} while( input != 'q'); /* Wait for user to quit */
+				cleanup();
+				break;
+			}
+
+			/* Error handling for instruction */
 			if( result == -1 ){
-				mvwprintw(mem_view, 1, 20, "Internal Error. Halting execution");
+				mvwprintw(mem_view, 1, 41, "Internal Error. Halting execution");
+				mvprintw(mem_view, 8, 41, "Press q to quit simulator");
 				do{
 					input = getch();
 				} while( input != 'q'); /* Wait for user to quit */
@@ -220,26 +249,26 @@ int main(int argc, char** argv){
 				cleanup();
 				break;
 			} else if( result == EM_INT ){
-				mvwprintw(mem_view, 1, 20, "Invalid Arithmetic Instruction.");
+				mvwprintw(mem_view, 1, 30, "Invalid Arithmetic Instruction.");
 			} else if( result == EM_IMM ){
-				mvwprintw(mem_view, 1, 20, "Invalid Immediate Instruction.");
+				mvwprintw(mem_view, 1, 30, "Invalid Immediate Instruction.");
 			} else if( result == EM_LD ){
-				mvwprintw(mem_view, 1, 20, "Invalid Load Instruction.");
+				mvwprintw(mem_view, 1, 30, "Invalid Load Instruction.");
 			} else if( result == EM_ST ){
-				mvwprintw(mem_view, 1, 20, "Invalid Store Instruction.");
+				mvwprintw(mem_view, 1, 30, "Invalid Store Instruction.");
 			} else if( result == EM_LI ){
-				mvwprintw(mem_view, 1, 20, "Invalid Load Immediate Instruction.");
+				mvwprintw(mem_view, 1, 30, "Invalid Load Immediate Instruction.");
 			} else if( result == EM_B ){
-				mvwprintw(mem_view, 1, 20, "Invalid Branch Instruction.");
+				mvwprintw(mem_view, 1, 30, "Invalid Branch Instruction.");
 			} else if( result == EM_SYS ){
-				mvwprintw(mem_view, 1, 20, "Invalid System Instruction.");
+				mvwprintw(mem_view, 1, 30, "Invalid System Instruction.");
 			} else if( result == EM_NCPID ){
-				mvwprintw(mem_view, 1, 20, "Invalid Co-Processor ID.");
+				mvwprintw(mem_view, 1, 30, "Invalid Co-Processor ID.");
 			} else if( result == EM_CP ){
-				mvwprintw(mem_view, 1, 20, "Co-Processor Instructions are not available.");
+				mvwprintw(mem_view, 1, 30, "Co-Processor Instructions are not available.");
+			} else {
+				mvwprintw(mem_view, 1, 30, "                                            ");
 			}
-		} else {
-			mvwprintw(mem_view, 1, 1, "Key pressed: %c\n", input);
 		}
 		draw_borders();
 		refresh_all();
@@ -279,6 +308,9 @@ int cleanup( void ) {
 	delwin(reg_view);
 	delwin(asm_view);
 	delwin(menu_bar);
+
+	/* Remove Auxiliary Files*/
+	system("rm -f ./code.txt");
 	//endwin();
 	return 0;
 }
@@ -417,15 +449,13 @@ int display_asm( char*** asm_text, int line_start, int line_end, int line_max){
 		wlinenum = (parent_y - MENU_BAR_H);
 	}
 
-	int i;
+	int i = 0;
 	/* Write out lines */
-	for(i = line_start; i < wlinenum; i++){
-		if( i == (code_line_num - 10) - line_start)
-		 // mvwprintw(asm_view, (3+ i), 2, "*%s\n", (*asm_text)[i+line_start]);
-		  mvwprintw(asm_view, (3+(i - line_start)), 2, "*%s\n", (*asm_text)[i]);
+	for(i = 0; i < wlinenum; i++){
+		if( i == (code_line_num - 20) - line_start)
+			mvwprintw(asm_view, (3+(i)), 2, "*%s\n", (*asm_text)[i + line_start]);
 		else
-		  //mvwprintw(asm_view, (3+ i), 3, "%s\n", (*asm_text)[i+line_start]);
-		  mvwprintw(asm_view, (3+(i - line_start)), 3, "%s\n", (*asm_text)[i]);
+			mvwprintw(asm_view, (3+(i)), 3, "%s\n", (*asm_text)[i + line_start]);
 	}
 
 	return 0;

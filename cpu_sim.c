@@ -26,19 +26,19 @@ int execute( insn_info* insn_i, uint32_t (*registers)[32], uint32_t* pc, uint32_
 			/* Determine ALUOP */
 			switch ( insn_parts.rtype.aluop ) {
 				case 0 :
-					gpregf[rd] = add( rsa, rsb );
+					(*registers)[rd] = add( rsa, rsb );
 					break;
 				case  1 :
-					gpregf[rd] = sub( rsa, rsb );
+					(*registers)[rd] = sub( rsa, rsb );
 					break;
 				case  4 :
-					gpregf[rd] = _not( rsa, rsb );
+					(*registers)[rd] = _not( rsa, rsb );
 					break;
 				case  5 :
- 					gpregf[rd] = _and( rsa, rsb );
+ 					(*registers)[rd] = _and( rsa, rsb );
 					break;
 				case  6 :
- 					gpregf[rd] = _or( rsa, rsb );
+ 					(*registers)[rd] = _or( rsa, rsb );
 					break;
 				case  7 :
  					(*registers)[rd] = _xor( rsa, rsb );
@@ -116,7 +116,7 @@ int execute( insn_info* insn_i, uint32_t (*registers)[32], uint32_t* pc, uint32_
 		case OPC_LD :
 			rd	= insn_parts.ltype.rd;
 			rsa	= (*registers)[insn_parts.ltype.rsa];
-			imm	= (*registers)[insn_parts.ltype.rd];
+			imm	= insn_parts.ltype.rd;
 
 			/* Finding size of data to read from memory */
 			switch( insn_parts.ltype.funct ){
@@ -275,67 +275,67 @@ insn_t parse_insn( uint32_t word ){
 	insn_t insn; /* Creation of the instruction type */
 
 	if( IS_R_TYPE(word) ) {	//need to get alu op to determine instruction
-		insn.rtype.opcode 	= (uint8_t)GET_OPC(word);
-		insn.rtype.rd 		= (uint8_t)GET_RD(word);
-		insn.rtype.rsa 		= (uint8_t)GET_RSA(word);
-		insn.rtype.rsb 		= (uint8_t)GET_RSB(word);
-		insn.rtype.aluop 	= (uint8_t)GET_ALUOP(word);
+		insn.rtype.opcode 	= GET_OPC(word);
+		insn.rtype.rd 		= GET_RD(word);
+		insn.rtype.rsa 		= GET_RSA(word);
+		insn.rtype.rsb 		= GET_RSB(word);
+		insn.rtype.aluop 	= GET_ALUOP(word);
 	} else if( IS_I_TYPE(word) ) { //need to get alu op to determine instruction
-		insn.itype.opcode 	= (uint8_t)GET_OPC(word);
+		insn.itype.opcode 	= GET_OPC(word);
 		insn.itype.rd 		= GET_RD(word);
 
 		insn.itype.rsa		= GET_RSA(word);
-		insn.itype.imm		= (uint16_t)GET_IMM_I(word);
-		insn.itype.aluop	= (uint8_t)GET_ALUOP(word);
+		insn.itype.imm		= GET_IMM_I(word);
+		insn.itype.aluop	= GET_ALUOP(word);
 	} else if( IS_L_TYPE(word) ) {
-		insn.ltype.opcode	= (uint8_t)GET_OPC(word);
-		insn.ltype.rd		= (uint8_t)GET_RD(word);
-		insn.ltype.rsa		= (uint8_t)GET_RSA(word);
-		insn.ltype.imm		= (uint16_t)GET_IMM_L(word);
-		insn.ltype.funct	= (uint8_t)GET_FUNCT_L(word);
+		insn.ltype.opcode	= GET_OPC(word);
+		insn.ltype.rd		= GET_RD(word);
+		insn.ltype.rsa		= GET_RSA(word);
+		insn.ltype.imm		= GET_IMM_L(word);
+		insn.ltype.funct	= GET_FUNCT_L(word);
 	} else if( IS_LI_TYPE(word) ) {
-		insn.litype.opcode	= (uint8_t)GET_OPC(word);
-		insn.litype.rd		= (uint8_t)GET_RD(word);
-		insn.litype.dsel	= (uint8_t)GET_DSEL_LI(word);
-		insn.litype.imm		= (uint16_t)GET_IMM_LI(word);
+		insn.litype.opcode	= GET_OPC(word);
+		insn.litype.rd		= GET_RD(word);
+		insn.litype.dsel	= GET_DSEL_LI(word);
+		insn.litype.imm		= GET_IMM_LI(word);
 	} else if( IS_S_TYPE(word) ) {
-		insn.stype.opcode	= (uint8_t)GET_OPC(word);
-		insn.stype.rsa		= (uint8_t)GET_RSA(word);
-		insn.stype.rsb		= (uint8_t)GET_RSB(word);
-		insn.stype.funct	= (uint8_t)GET_FUNCT_S(word);
+		insn.stype.opcode	= GET_OPC(word);
+		insn.stype.rsa		= GET_RSA(word);
+		insn.stype.rsb		= GET_RSB(word);
+		insn.stype.funct	= GET_FUNCT_S(word);
 	} else if( IS_J_TYPE(word) ) {
-		insn.jtype.opcode 	= (uint8_t)GET_OPC(word);
-		insn.jtype.rsa		= (uint8_t)GET_RSA(word);
-		insn.jtype.imm		= (uint32_t)GET_IMM_J(word);
+		insn.jtype.opcode 	= GET_OPC(word);
+		insn.jtype.rsa		= GET_RSA(word);
+		insn.jtype.imm		= GET_IMM_J(word);
 		/* Determining if linking PC or not */
 		if( IS_JMP_INSN(word) )
 			insn.jtype.link	= FALSE;
 		else if ( IS_JLNK_INSN(word) )
 			insn.jtype.link = TRUE;
 		else {	/* Something wrong, create nop */
-			insn.jtype.opcode = (uint8_t) 0; /* zero in opcode will always be nop */
+			insn.jtype.opcode = 0; /* zero in opcode will always be nop */
 		}
 
 	} else if( IS_B_TYPE(word) ) {
-		insn.btype.opcode	= (uint8_t)GET_OPC(word);
-		insn.btype.rsa		= (uint8_t)GET_RSA(word);
-		insn.btype.rsb		= (uint8_t)GET_RSB(word);
-		insn.btype.imm		= (uint16_t)GET_IMM_B(word);
-		insn.btype.funct	= (uint8_t)GET_FUNCT_B(word);
+		insn.btype.opcode	= GET_OPC(word);
+		insn.btype.rsa		= GET_RSA(word);
+		insn.btype.rsb		= GET_RSB(word);
+		insn.btype.imm		= GET_IMM_B(word);
+		insn.btype.funct	= GET_FUNCT_B(word);
 	} else if( IS_SYS_TYPE(word) ) {
-		insn.systype.opcode	= (uint8_t)GET_OPC(word);
-		insn.systype.rd		= (uint8_t)GET_RD(word);
-		insn.systype.rsa	= (uint8_t)GET_RSA(word);
-		insn.systype.imm	= (uint8_t)GET_IMM_SYS(word);
-		insn.systype.funct	= (uint8_t)GET_FUNCT_SYS(word);
+		insn.systype.opcode	= GET_OPC(word);
+		insn.systype.rd		= GET_RD(word);
+		insn.systype.rsa	= GET_RSA(word);
+		insn.systype.imm	= GET_IMM_SYS(word);
+		insn.systype.funct	= GET_FUNCT_SYS(word);
 	} else if( IS_CP_INSN(word) ) {
 		/* TO-DO Add in co-processor support */
 
 		/* For now, just create nop */
-		insn.rtype.opcode = (uint8_t)0;
+		insn.rtype.opcode = 0;
 	} else {
 		/* Anything else is just nop, for error handling */
-		insn.rtype.opcode = (uint8_t)0;
+		insn.rtype.opcode = 0;
 	}
 
 	return insn;
