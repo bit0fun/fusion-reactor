@@ -71,9 +71,11 @@ int	read_elf( const char* filename, uint32_t** text_segp, uint32_t** data_segp, 
 	uint32_t data_end	= data_start + (uint32_t)(program_headers[1]->p_filesz);
 
 
-	//printf("Entry point:\t %08x\n",(unsigned long int) pc);
-	//printf("Text address start:\t%08x\n", (unsigned long int) text_start);
-	//printf("Text address end:\t %08x\n", (unsigned long int) text_end);
+	printf("Entry point:\t0x%08x\n",(unsigned long int) pc);
+	printf("Text address start:\t0x%08x\n", (unsigned long int) text_start);
+	printf("Text address end:\t0x%08x\n", (unsigned long int) text_end);
+	printf("Data segment start:\t0x%08x\n", (unsigned long int) data_start);
+	printf("Data segment end:\t0x%08x\n", (unsigned long int) data_end);
 
 	/* Need to start at correct spot in array, so subtract the text segment
 	 * start virtual address, from the program counter */
@@ -219,7 +221,7 @@ int get_phdr(const char* filename, Elf32_Phdr* prg_hdr, Elf32_Ehdr* elf_hdr, int
 	(*prg_hdr)->p_flags		= tmp.p_flags; 
 	(*prg_hdr)->p_align 	= tmp.p_align;
 */
-	printf("Before endian change, Segment offset: %08x\n", (prg_hdr)->p_offset);
+//	printf("Before endian change, Segment offset: %08x\n", (prg_hdr)->p_offset);
 #ifdef HOST_LITTLE_ENDIAN
 	
 	(prg_hdr)->p_type 	= change_endian( (prg_hdr)->p_type );
@@ -282,7 +284,7 @@ int get_segment_data(const char* filename, Elf32_Phdr* prg_hdr, uint32_t** segme
 
 //	void* tmp = (void *)malloc( seg_size );	
 	/* Put file pointer to correct offset */
-	printf("Segment offset: %08x\n", (prg_hdr)->p_offset);
+//	printf("Segment offset: %08x\n", (prg_hdr)->p_offset);
 	fseek(fp, ( (prg_hdr)->p_offset), SEEK_SET);
 //	fread( tmp, seg_size, 1, fp);
 	fread( *segment_data, seg_size, 1, fp);

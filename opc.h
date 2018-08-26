@@ -35,10 +35,10 @@ uint32_t slli( uint32_t rsa, uint16_t imm );
 uint32_t slri( uint32_t rsa, uint16_t imm );
 uint32_t compi( uint32_t rsa, uint16_t imm );
 
-uint32_t lw( uint32_t** data_mem, dataseg_info dseg_i, uint32_t rsa, uint16_t imm );
-uint32_t lth( uint32_t** data_mem, dataseg_info dseg_i, uint32_t rsa, uint16_t imm ); 
-uint16_t lh( uint32_t** data_mem, dataseg_info dseg_i, uint32_t rsa, uint16_t imm );
-uint8_t lb( uint32_t** data_mem, dataseg_info dseg_i, uint32_t rsa, uint16_t imm );
+uint32_t lw( uint32_t* data_mem, dataseg_info dseg_i, uint32_t rsa, uint16_t imm );
+uint32_t lth( uint32_t* data_mem, dataseg_info dseg_i, uint32_t rsa, uint16_t imm ); 
+uint16_t lh( uint32_t* data_mem, dataseg_info dseg_i, uint32_t rsa, uint16_t imm );
+uint8_t lb( uint32_t* data_mem, dataseg_info dseg_i, uint32_t rsa, uint16_t imm );
 
 uint32_t li( uint16_t imm );
 uint32_t lsi( uint16_t imm ); 
@@ -53,10 +53,10 @@ uint32_t luni( uint16_t imm );
 uint32_t lunsi( uint16_t imm );
 uint32_t lungi( uint16_t );
 
-void sw( uint32_t** data_mem, dataseg_info dseg_i, uint32_t rsa, uint32_t rsb, uint16_t imm );
-void sh( uint32_t** data_mem, dataseg_info dseg_i, uint32_t rsa, uint32_t rsb, uint16_t imm ); 
-void sb( uint32_t** data_mem, dataseg_info dseg_i, uint32_t rsa, uint32_t rsb, uint16_t imm ); 
-void sth( uint32_t** data_mem, dataseg_info dseg_i, uint32_t rsa, uint32_t rsb, uint16_t imm );
+void sw( uint32_t* data_mem, dataseg_info dseg_i, uint32_t rsa, uint32_t rsb, uint16_t imm );
+void sh( uint32_t* data_mem, dataseg_info dseg_i, uint32_t rsa, uint32_t rsb, uint16_t imm ); 
+void sb( uint32_t* data_mem, dataseg_info dseg_i, uint32_t rsa, uint32_t rsb, uint16_t imm ); 
+void sth( uint32_t* data_mem, dataseg_info dseg_i, uint32_t rsa, uint32_t rsb, uint16_t imm );
 	
 void j( uint32_t* pc, uint32_t imm );
 uint32_t jal( uint32_t* pc,  uint32_t imm, uint32_t* ra );

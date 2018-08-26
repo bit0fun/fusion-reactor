@@ -7,9 +7,9 @@ uint32_t fetch( uint32_t** imem, uint32_t pc ){
 
 /* Simulation execution of instructions for pure functionality
  * of the ISA. no additional features are to be used here */
-int execute( insn_info* insn_i, uint32_t (*registers)[32], uint32_t* pc, uint32_t* cycleno, uint32_t** data_mem, dataseg_info dseg_i ){	
+int execute( insn_info* insn_i, uint32_t *registers, uint32_t* pc, uint32_t* cycleno, uint32_t* data_mem, dataseg_info dseg_i ){	
 	uint32_t insn_word = insn_i->word;
-	uint32_t* gpregf = (*registers);
+//	uint32_t* gpregf = (*registers);
 	insn_t insn_parts = parse_insn( insn_word );	
 	uint8_t opcode = GET_OPC( insn_word );	
 	int rd;
@@ -20,47 +20,48 @@ int execute( insn_info* insn_i, uint32_t (*registers)[32], uint32_t* pc, uint32_
 		/* Integer \ Arithmetic Instructions */
 		case OPC_INT :
 			rd  = insn_parts.rtype.rd;
-			rsa = (*registers)[insn_parts.rtype.rsa];
-			rsb = (*registers)[insn_parts.rtype.rsb];
+			rsa = registers[insn_parts.rtype.rsa];
+			rsb = registers[insn_parts.rtype.rsb];
 			
 			/* Determine ALUOP */
 			switch ( insn_parts.rtype.aluop ) {
 				case 0 :
-					(*registers)[rd] = add( rsa, rsb );	
+					registers[rd] = add( rsa, rsb );	
 					break;
 				case  1 :
-					(*registers)[rd] = sub( rsa, rsb );
+					registers[rd] = sub( rsa, rsb );
 					break;
 				case  4 :
-					(*registers)[rd] = not( rsa, rsb );
+					registers[rd] = not( rsa, rsb );
 					break;	   
 				case  5 :
- 					(*registers)[rd] = and( rsa, rsb );
+ 					registers[rd] = and( rsa, rsb );
 					break;
 				case  6 :
- 					(*registers)[rd] = or( rsa, rsb );
+ 					registers[rd] = or( rsa, rsb );
 					break;
 				case  7 :
- 					(*registers)[rd] = xor( rsa, rsb );
+ 					registers[rd] = xor( rsa, rsb );
 					break;
 				case  8 :
- 					(*registers)[rd] = sal( rsa, rsb );
+ 					registers[rd] = sal( rsa, rsb );
 					break;	   
 				case  9 :
- 					(*registers)[rd] = sar( rsa, rsb );
+ 					registers[rd] = sar( rsa, rsb );
 					break;
 				case  10 :
- 					(*registers)[rd] = sll( rsa, rsb );
+ 					registers[rd] = sll( rsa, rsb );
 					break;
 				case  11 :
- 					(*registers)[rd] = slr( rsa, rsb );
+ 					registers[rd] = slr( rsa, rsb );
 					break;
 				case  12 :
- 					(*registers)[rd] = comp( rsa, rsb );
+ 					registers[rd] = comp( rsa, rsb );
 					break;
 				default :
 					/* Return error of incorrect Arithmetic instruction */
 					*pc += 4;	/* Increment PC */
+					(*cycleno)++; /* increment executed cycle */
 					return EM_INT; 
 					break;
 			}
@@ -68,45 +69,46 @@ int execute( insn_info* insn_i, uint32_t (*registers)[32], uint32_t* pc, uint32_
 			break;
 		case OPC_IMM :
 			rd 	= insn_parts.itype.rd;
-			rsa	= (*registers)[insn_parts.itype.rsa];
-			imm	= (*registers)[insn_parts.itype.rd];
+			rsa	= registers[insn_parts.itype.rsa];
+			imm	= insn_parts.itype.imm;
 			/* Determine ALUOP */
 			switch ( insn_parts.rtype.aluop ) {
 				case 0 :
-					(*registers)[rd] = addi( rsa, imm );	
+					registers[rd] = addi( rsa, imm );	
 					break;
 				case  1 :
-					(*registers)[rd] = subi( rsa, imm );
+					registers[rd] = subi( rsa, imm );
 					break;
 				case  4 :
-					(*registers)[rd] = noti( imm );
+					registers[rd] = noti( imm );
 					break;	   
 				case  5 :
- 					(*registers)[rd] = andi( rsa, imm );
+ 					registers[rd] = andi( rsa, imm );
 					break;
 				case  6 :
- 					(*registers)[rd] = ori( rsa, imm );
+ 					registers[rd] = ori( rsa, imm );
 					break;
 				case  7 :
- 					(*registers)[rd] = xori( rsa, imm );
+ 					registers[rd] = xori( rsa, imm );
 					break;
 				case  8 :
- 					(*registers)[rd] = sali( rsa, imm );
+ 					registers[rd] = sali( rsa, imm );
 					break;	   
 				case  9 :
- 					(*registers)[rd] = sari( rsa, imm );
+ 					registers[rd] = sari( rsa, imm );
 					break;
 				case  10 :
- 					(*registers)[rd] = slli( rsa, imm );
+					registers[rd] = slli( rsa, imm );
 					break;
 				case  11 :
- 					(*registers)[rd] = slri( rsa, imm );
+ 					registers[rd] = slri( rsa, imm );
 					break;
 				case  12 :
- 					(*registers)[rd] = compi( rsa, imm );
+					registers[rd] = compi( rsa, imm );
 					break;
 				default :
 					*pc += 4;	/* Increment PC */
+					(*cycleno)++; /* increment executed cycle */
 					return EM_IMM;
 					break;
 			}
@@ -114,86 +116,96 @@ int execute( insn_info* insn_i, uint32_t (*registers)[32], uint32_t* pc, uint32_
 			break;
 		case OPC_LD :
 			rd	= insn_parts.ltype.rd;
-			rsa	= (*registers)[insn_parts.ltype.rsa];
-			imm	= (*registers)[insn_parts.ltype.rd];
+			rsa	= registers[insn_parts.ltype.rsa];
+			imm	= insn_parts.ltype.imm;
 
 			/* Finding size of data to read from memory */
 			switch( insn_parts.ltype.funct ){
 				/* Word */
 				case 0 :
-					(*registers)[rd] = lw(data_mem, dseg_i, rsa, imm);
+					registers[rd] = lw(data_mem, dseg_i, rsa, imm);
 					break;
 				/* Half Word ( upper ) */
 				case 1 :
-					(*registers)[rd] = lh(data_mem, dseg_i, rsa, imm);
+					registers[rd] = lh(data_mem, dseg_i, rsa, imm);
 					break;
 				/* 3 Quarter Word ( upper ) */
 				case 2 :
-					(*registers)[rd] = lth(data_mem, dseg_i, rsa, imm);
+					registers[rd] = lth(data_mem, dseg_i, rsa, imm);
 					break;
 				/* Byte */
 				case 3 :
-					(*registers)[rd] = lb(data_mem, dseg_i, rsa, imm);
+					registers[rd] = lb(data_mem, dseg_i, rsa, imm);
 					break;
 				default :
 					*pc += 4;	/* Increment PC */
+					(*cycleno)++; /* increment executed cycle */
 					return EM_LD;
 					break;
 			}
 			*pc += 4;	/* Increment PC */
+			printf("Loaded value from memory:\t0x%08x\n", (unsigned int)registers[rd] );
 			break;
 		case OPC_LI :
 			rd	= insn_parts.litype.rd;
 			imm = insn_parts.litype.imm;
+			printf("RD value: %d\n", rd);
+			printf("Load immediate type: %d\n", insn_parts.litype.dsel);
 
 			switch( insn_parts.litype.dsel ) {
 				case 0 :
-					(*registers)[rd] = li( imm );
+					registers[rd] = li( imm );
 					break;
 				case 1 :
-					(*registers)[rd] = lsi( imm );
+					registers[rd] = lsi( imm );
 					break;
 				case 2 :
-					(*registers)[rd] = lgi( imm );
+					registers[rd] = lgi( imm );
 					break;
 				case 4 :
-					(*registers)[rd] = lui( imm );
+					registers[rd] |= lui( imm );
+					printf("Value from lui: %08x\n", (unsigned long)lui(imm));
 					break;
 				case 5 :
-					(*registers)[rd] = lusi( imm );
+					registers[rd] |= lusi( imm );
 					break;
 				case 6 :
-					(*registers)[rd] = lugi( imm );
+					registers[rd] |= lugi( imm );
 					break;
 				case 8 :
-					(*registers)[rd] = lni( imm );
+					registers[rd] |= lni( imm );
 					break;
 				case 9 :
-					(*registers)[rd] = lnsi( imm );
+					registers[rd] |= lnsi( imm );
 					break;
 				case 10 :
-					(*registers)[rd] = lngi( imm );
+					registers[rd] |= lngi( imm );
 					break;
 				case 12 :
-					(*registers)[rd] = luni( imm );
+					registers[rd] |= luni( imm );
 					break;
 				case 13 :
-					(*registers)[rd] = lunsi( imm );
+					registers[rd] |= lunsi( imm );
 					break;
 				case 14 :
-					(*registers)[rd] = lungi( imm );
+					registers[rd] |= lungi( imm );
 					break;
 				default :
 					*pc += 4;	/* Increment PC */
+					(*cycleno)++; /* increment executed cycle */
 					return EM_LI;
 					break;
 			}
 			*pc += 4;	/* Increment PC */
+			printf("Stored value in register: %08x\n", registers[rd]);
 			break;
 		case OPC_ST :
-			rsa = (*registers)[insn_parts.stype.rsa];
-			rsb = (*registers)[insn_parts.stype.rsb];
+			rsa = registers[insn_parts.stype.rsa];
+			rsb = registers[insn_parts.stype.rsb];
 			imm = insn_parts.stype.imm;
+			printf("RSA value to pass: %08x\n", rsa);
+			printf("RSA regsiter number %d\n", insn_parts.stype.rsa);
+
 			/* Finding size of data to write to memory */
 			switch( insn_parts.ltype.funct ){
 				/* Word */
@@ -222,19 +234,19 @@ int execute( insn_info* insn_i, uint32_t (*registers)[32], uint32_t* pc, uint32_
 		case OPC_JMP :
 			/* Default to Jump Register, and if RSA = 0, function will alter it
 			 * to normal Jump */
-			jr( pc, (*registers)[insn_parts.jtype.rsa], insn_parts.jtype.imm );
+			jr( pc, registers[insn_parts.jtype.rsa], insn_parts.jtype.imm );
 			break;
 		case OPC_JLNK :
 			/* Default to Jump Register and Link, and if RSA = 0, function will alter it
 			 * to normal Jump and Link */
-			jrl( pc, (*registers)[insn_parts.jtype.rsa], insn_parts.jtype.imm, (registers)[4] );
+			jrl( pc, registers[insn_parts.jtype.rsa], insn_parts.jtype.imm, (registers + 4) );
 			break;
 		case OPC_BRANCH :
 			/* Can sample branch taken, at the moment this is not used.
 			 * Can be helpful for debugging ideas for branch predictors or 
 			 * performance with branches */
-			rsa = (*registers)[ insn_parts.btype.rsa];
-			rsb = (*registers)[ insn_parts.btype.rsb];
+			rsa = registers[ insn_parts.btype.rsa];
+			rsb = registers[ insn_parts.btype.rsb];
 			imm = insn_parts.btype.imm;
 			/* Determining Branch type */
 			switch( insn_parts.btype.funct ) {
@@ -251,12 +263,15 @@ int execute( insn_info* insn_i, uint32_t (*registers)[32], uint32_t* pc, uint32_
 					blt( pc, rsa, rsb, imm);
 					break;
 				default :
+					(*cycleno)++; /* increment executed cycle */
 					return EM_B;
+					break;
 			}
 			break;
 		case OPC_SYS :
 			/* No system instructions yet, so error */
 			*pc += 4;	/* Increment PC */
+			(*cycleno)++; /* increment executed cycle */
 			return EM_SYS;
 			break;
 		case 0x00: 	/* Explicit NO-OP*/
@@ -265,9 +280,11 @@ int execute( insn_info* insn_i, uint32_t (*registers)[32], uint32_t* pc, uint32_
 		default :
 			/* Must be co-processor instruction, return error */
 			*pc += 4;	/* Increment PC */
+			(*cycleno)++; /* increment executed cycle */
 			return EM_CP;
 			break;
 	}
+	(*cycleno)++; /* increment executed cycle */
 	return 0;
 }
 
@@ -301,9 +318,11 @@ insn_t parse_insn( uint32_t word ){
 		insn.litype.imm		= (uint16_t)GET_IMM_LI(word);
 	} else if( IS_S_TYPE(word) ) {
 		insn.stype.opcode	= (uint8_t)GET_OPC(word);
-		insn.stype.rsa		= (uint8_t)GET_RSA(word);
+		insn.stype.rsa		= (uint8_t)(GET_RSA(word));
+		printf("RSA index: %08x\n", (unsigned long) insn.stype.rsa);
 		insn.stype.rsb		= (uint8_t)GET_RSB(word);
 		insn.stype.funct	= (uint8_t)GET_FUNCT_S(word);
+		insn.stype.imm		= (uint16_t)GET_IMM_S(word);
 	} else if( IS_J_TYPE(word) ) {
 		insn.jtype.opcode 	= (uint8_t)GET_OPC(word);
 		insn.jtype.rsa		= (uint8_t)GET_RSA(word);

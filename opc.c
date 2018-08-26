@@ -94,24 +94,61 @@ uint32_t compi( uint32_t rsa, uint16_t imm ){
 
 
 /* Load */
-uint32_t lw( uint32_t** data_mem, dataseg_info dseg_i, uint32_t rsa, uint16_t imm ){ 
-	uint32_t offset = (( rsa + (uint32_t)(imm & 0x3fff) ) - dseg_i.start) >> 2 ;
-	return (*data_mem)[offset];
+uint32_t lw( uint32_t* data_mem, dataseg_info dseg_i, uint32_t rsa, uint16_t imm ){ 
+	uint32_t offset = ( ( rsa + imm ));
+	if( offset > dseg_i.end || offset < dseg_i.start ){ /* need to check bounds first, can't access outside memory otherwise segfault */
+		/* segfault: writing to memory outside of data segment */
+		printf("ERROR:\tSegfault in memory read detected at address %08x.\nValue attempted to write:%08x\n",(unsigned long)offset, (unsigned long)rsa);
+		return 0; /* return 0 for segfault or other memory error */
+	} else {
+		/* no issue, can write to memory just fine, so need to get 32 bit
+		 * aligned address  */
+		offset = ( ( rsa + (uint32_t)( imm & 0x3fff) ) - dseg_i.start) >> 2;
+		return data_mem[offset];
+	}
 }
 
-uint32_t lth( uint32_t** data_mem, dataseg_info dseg_i, uint32_t rsa, uint16_t imm ){ 
-	uint32_t offset = ((rsa + (uint32_t)(imm & 0x3fff) ) - dseg_i.start) >> 2 ;
-	return ( (*data_mem)[offset] & 0xFFFFFF00) >> 8; /* May need to double check, due to running big endian on little endian */
+uint32_t lth( uint32_t* data_mem, dataseg_info dseg_i, uint32_t rsa, uint16_t imm ){ 
+	uint32_t offset = ( ( rsa + imm ));
+	if( offset > dseg_i.end || offset < dseg_i.start ){ /* need to check bounds first, can't access outside memory otherwise segfault */
+		/* segfault: writing to memory outside of data segment */
+		printf("ERROR:\tSegfault in memory read detected at address %08x.\nValue attempted to write:%08x\n",(unsigned long)offset, (unsigned long)rsa);
+		return 0; /* return 0 for segfault or other memory error */
+	} else {
+		/* no issue, can write to memory just fine, so need to get 32 bit
+		 * aligned address  */
+		offset = ( ( rsa + (uint32_t)( imm & 0x3fff) ) - dseg_i.start) >> 2;
+		return ( data_mem[offset] & 0xFFFFFF00) >> 8; /* May need to double check, due to running big endian on little endian */
+	}
 }
 
-uint16_t lh( uint32_t** data_mem, dataseg_info dseg_i, uint32_t rsa, uint16_t imm ){ 
-	uint32_t offset = ((rsa + (uint32_t)(imm & 0x3fff) ) - dseg_i.start) >> 2 ;
-	return (uint16_t)(( (*data_mem)[offset] & 0xFFFF0000) >> 16); /* May need to double check, due to running big endian on little endian */
+uint16_t lh( uint32_t* data_mem, dataseg_info dseg_i, uint32_t rsa, uint16_t imm ){ 
+	uint32_t offset = ( ( rsa + imm ));
+	if( offset > dseg_i.end || offset < dseg_i.start ){ /* need to check bounds first, can't access outside memory otherwise segfault */
+		/* segfault: writing to memory outside of data segment */
+		printf("ERROR:\tSegfault in memory read detected at address %08x.\nValue attempted to write:%08x\n",(unsigned long)offset, (unsigned long)rsa);
+		return 0; /* return 0 for segfault or other memory error */
+	} else {
+		/* no issue, can write to memory just fine, so need to get 32 bit
+		 * aligned address  */
+		offset = ( ( rsa + (uint32_t)( imm & 0x3fff) ) - dseg_i.start) >> 2;
+		return (uint16_t)(( data_mem[offset] & 0xFFFF0000) >> 16); /* May need to double check, due to running big endian on little endian */
+	}
 }
 
-uint8_t lb( uint32_t** data_mem, dataseg_info dseg_i, uint32_t rsa, uint16_t imm ){ 
-	uint32_t offset = ((rsa + (uint32_t)(imm & 0x3fff) ) - dseg_i.start) >> 2 ;
-	return (uint8_t)(( (*data_mem)[offset] & 0xFF000000) >> 24); /* May need to double check, due to running big endian on little endian */
+uint8_t lb( uint32_t* data_mem, dataseg_info dseg_i, uint32_t rsa, uint16_t imm ){ 
+	uint32_t offset = ( ( rsa + imm ));
+	if( offset > dseg_i.end || offset < dseg_i.start ){ /* need to check bounds first, can't access outside memory otherwise segfault */
+		/* segfault: writing to memory outside of data segment */
+		printf("ERROR:\tSegfault in memory read detected at address %08x.\nValue attempted to write:%08x\n",(unsigned long)offset, (unsigned long)rsa);
+		return 0; /* return 0 for segfault or other memory error */
+	} else {
+		/* no issue, can write to memory just fine, so need to get 32 bit
+		 * aligned address  */
+		offset = ( ( rsa + (uint32_t)( imm & 0x3fff) ) - dseg_i.start) >> 2;
+		//return (uint8_t)(( data_mem[offset] & 0xFF000000) >> 24); /* May need to double check, due to running big endian on little endian */
+		return (uint8_t)(data_mem[offset]);
+	}
 }
 
 /* Load Immediate */
@@ -131,7 +168,10 @@ uint32_t lgi( uint16_t imm ){
 }
 
 uint32_t lui( uint16_t imm ){ 
-	return (uint32_t)imm << 16;
+	printf("Immediate before lui: %08x\n", (unsigned long) imm);
+	printf("Immediate after lui: %08x\n", (unsigned long)(imm << 16));
+
+	return (uint32_t)(imm << 16);
 }
 
 uint32_t lusi( uint16_t imm){ 
@@ -176,27 +216,64 @@ uint32_t lungi( uint16_t imm ){
 
 
 /* Store */
-void sw( uint32_t** data_mem, dataseg_info dseg_i, uint32_t rsa, uint32_t rsb, uint16_t imm ){ 
-	uint32_t idx = ( ( rsa + (uint32_t)( imm & 0x3fff) ) - dseg_i.start)/4 ;
-	(*data_mem)[idx] = rsb;
+void sw( uint32_t* data_mem, dataseg_info dseg_i, uint32_t rsa, uint32_t rsb, uint16_t imm ){ 
+	uint32_t idx = ( ( rsa + imm ));
+	if( idx > dseg_i.end || idx < dseg_i.start ){ /* need to check bounds first, can't access outside memory otherwise segfault */
+		/* segfault: writing to memory outside of data segment */
+		printf("ERROR:\tSegfault in memory write detected at address %08x.\nValue attempted to write:%08x\n",(unsigned long)idx, (unsigned long)rsb);
+	} else {
+		/* no issue, can write to memory just fine, so need to get 32 bit
+		 * aligned address  */
+		idx = ( ( rsa + (uint32_t)( imm & 0x3fff) ) - dseg_i.start);
+		idx /= 4;
+		data_mem[idx] = rsb;
+	}
 }
 
-void sh( uint32_t** data_mem, dataseg_info dseg_i, uint32_t rsa, uint32_t rsb, uint16_t imm ){ 
-	uint32_t idx = (( rsa + (uint32_t)(imm & 0x3fff) ) - dseg_i.start)/4 ;
-	(*data_mem)[idx] &= 0x0000FFFF;
-	(*data_mem)[idx] |= (rsb & 0x0000FFFF) << 16;
+void sh( uint32_t* data_mem, dataseg_info dseg_i, uint32_t rsa, uint32_t rsb, uint16_t imm ){ 
+	uint32_t idx = ( ( rsa + imm ));
+	if( idx > dseg_i.end || idx < dseg_i.start ){ /* need to check bounds first, can't access outside memory otherwise segfault */
+		/* segfault: writing to memory outside of data segment */
+		printf("ERROR:\tSegfault in memory write detected at address %08x.\nValue attempted to write:%08x\n",(unsigned long)idx, (unsigned long)rsb);
+	} else {
+		/* no issue, can write to memory just fine, so need to get 32 bit
+		 * aligned address  */
+
+		idx = ( ( rsa + (uint32_t)( imm & 0x3fff) ) - dseg_i.start);
+		idx /= 4;
+		data_mem[idx] &= 0x0000FFFF;
+		data_mem[idx] |= (rsb & 0x0000FFFF) << 16;
+	}
 }
 
-void sb( uint32_t** data_mem, dataseg_info dseg_i, uint32_t rsa, uint32_t rsb, uint16_t imm ){ 
-	uint32_t idx = (( rsa + (uint32_t)(imm & 0x3fff) ) - dseg_i.start)/4 ;
-	(*data_mem)[idx] &= 0x00FFFFFF;
-	(*data_mem)[idx] |= (rsb & 0x000000FF) << 24;
+void sb( uint32_t* data_mem, dataseg_info dseg_i, uint32_t rsa, uint32_t rsb, uint16_t imm ){ 
+	uint32_t idx = ( ( rsa + imm ));
+	if( idx > dseg_i.end || idx < dseg_i.start ){ /* need to check bounds first, can't access outside memory otherwise segfault */
+		/* segfault: writing to memory outside of data segment */
+		printf("ERROR:\tSegfault in memory write detected at address %08x.\nValue attempted to write:%08x\n",(unsigned long)idx, (unsigned long)rsb);
+	} else {
+		/* no issue, can write to memory just fine, so need to get 32 bit
+		 * aligned address  */
+		idx = ( ( rsa + (uint32_t)( imm & 0x3fff) ) - dseg_i.start);
+		idx /= 4;
+		data_mem[idx] &= 0x00FFFFFF;
+		data_mem[idx] |= (rsb & 0x000000FF) << 24;
+	}
 }
 
-void sth( uint32_t** data_mem, dataseg_info dseg_i, uint32_t rsa, uint32_t rsb, uint16_t imm ){ 
-	uint32_t idx = (( rsa + (uint32_t)(imm & 0x3fff) ) - dseg_i.start)/4 ;
-	(*data_mem)[idx] &= 0x000000FF;
-	(*data_mem)[idx] |= ( rsb ) << 8; 
+void sth( uint32_t* data_mem, dataseg_info dseg_i, uint32_t rsa, uint32_t rsb, uint16_t imm ){ 
+	uint32_t idx = ( ( rsa + imm ));
+	if( idx > dseg_i.end || idx < dseg_i.start ){ /* need to check bounds first, can't access outside memory otherwise segfault */
+		/* segfault: writing to memory outside of data segment */
+		printf("ERROR:\tSegfault in memory write detected at address %08x.\nValue attempted to write:%08x\n",(unsigned long)idx, (unsigned long)rsb);
+	} else {
+		/* no issue, can write to memory just fine, so need to get 32 bit
+		 * aligned address  */
+		idx = ( ( rsa + (uint32_t)( imm & 0x3fff) ) - dseg_i.start);
+		idx /= 4;
+		data_mem[idx] &= 0x000000FF;
+		data_mem[idx] |= ( rsb ) << 8; 
+	}
 }
 
 /* Jump */

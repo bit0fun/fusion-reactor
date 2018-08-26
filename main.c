@@ -65,14 +65,13 @@ WINDOW *mem_view;
 /* Prototypes */
 int check_run_key( char c );
 int check_exit_key( char c );
-int cleanup( void );
 int refresh_all( void );
 int draw_borders( void );
 int count_line_number( const char* filename );
 int read_asm_file( const char* filename, char*** asm_text );
 const char* get_line_asm_file( char*** asm_text, int linenum );
 int display_asm( char*** asm_text, int line_start, int line_end, int line_max);
-int print_reg(uint32_t reg[32],  uint32_t pc);
+int print_reg(uint32_t* reg,  uint32_t pc);
 int print_mem(uint32_t** mem, int xpos, int ypos, uint32_t addr_start, int naddr, uint32_t addr_seg_start);
 
 
@@ -94,7 +93,6 @@ int main(int argc, char** argv){
 	
 	/* Get assembly file to display */
 	if(argc != 2) {
-		cleanup();	
 		endwin();
 		printf("Usage: fusion-reactor <file.elf>\n ");
 		return -1;
@@ -127,7 +125,7 @@ int main(int argc, char** argv){
 
 
 	/* Initializing ELF File */
-	int result = read_elf(argv[1], &insn_mem, &data_mem, &im_info, &dmem_info);
+	int result = read_elf(argv[1], &insn_mem, data_mem, &im_info, &dmem_info);
 	if( result ){
 		printf("Cannot parse elf\n");
 	}
@@ -140,175 +138,61 @@ int main(int argc, char** argv){
 	char* code_win_title = "Assembly Code";
 	char input;
 	insn_info insn_i;
-/* Debugging memory passed 
-	printf("\nPassed memory\n");
+/* Debugging memory passed */
+/*	printf("\nPassed memory\n");
 	for(uint32_t i = ((pc - entry_point)/4); i < (im_info.end - im_info.entry)/4 ; i++){
 		printf("@:%08x |\t %08x\n", ((i*4)+entry_point), (insn_mem)[i]);
 	}
 */
-	/* Starting ncurses */
-
-
-	/* Getting parent window sizes */
-	getmaxyx(stdscr, parent_y, parent_x);
-	parent_y = 38;
-	parent_x = 150;
-	/* Start ncurses */
-	initscr();
-	start_color();
-//	cbreak();
-	raw();
-	curs_set(FALSE);
-	keypad(stdscr, TRUE);
-	noecho();
-	
-	/* Create Menu Bar */
-	menu_bar = newwin(MENU_BAR_H, parent_x / (MENU_BAR_W / 100) , 0, 0);
-
-	/* Create Assembly/Code View */
-	asm_view = newwin( (parent_y - MENU_BAR_H) , (parent_x / 2), 2, 0);
-	wborder(asm_view, '|', '|', '-', '-', '#', '#', '#', '#');
-	/* Create Register View */
-	reg_view = newwin( 17 , (parent_x / 2), 2, (parent_x / 2));
-	wborder(reg_view, '|', '|', '-', '-', '#', '#', '#', '#');
-
-	/* Create Memory View */
-	mem_view = newwin( (parent_y - 16 - MENU_BAR_H) , (parent_x / 2), (16 + MENU_BAR_H), (parent_x/2));
-	wborder(mem_view, '|', '|', '-', '-', '#', '#', '#', '#');
-
-	mvwprintw(menu_bar, 0, (parent_x / 2) - 7, "Fusion-Reactor");
-	refresh();
-	refresh_all();
 
 	uint32_t imem_offset = entry_point - im_info.start; /* needed to find proper starting position */
 	code_line_num += (pc - entry_point + imem_offset) /4;
 	insn_i.word = insn_mem[ code_line_num ]; /* Saving instruction word */
 	uint32_t old_pc = 0;
-	while( 1 ){
-		mvwprintw(reg_view, 5, 41, "Line num: %d", code_line_num);
-		mvwprintw(reg_view, 6, 41, "Insn: %08x", insn_i.word);
-		mvwprintw(reg_view, 2, 41, "size of mem:\t%08x", (im_info.end - im_info.start) );			
-		/* Drawing everything required before input */
-		input = getch();
-		if( check_run_key(input) ){
-
-			mvwprintw(asm_view, 1,  parent_y - MENU_BAR_H-1 - strlen(code_win_title)/2, code_win_title);
-			display_asm( &asm_text, code_line_num, (parent_y - MENU_BAR_H-1) + code_line_num, asm_line_count);	
-	// 		display_asm( &asm_text, 0, parent_y - MENU_BAR_H-1 , asm_line_count);	
-
-			print_reg( registers, pc);
-			print_mem(&data_mem, 1, 1, dmem_info.start,  (parent_y - 16 - MENU_BAR_H), dmem_info.start);
-			
-		} else if( check_exit_key(input) ){
-			cleanup();
-			break;
-		} else if( input == 's' ){
-			/* Stepping through program */
-			old_pc = pc; /* save old PC */
-			mvwprintw(mem_view, 2, 28, "Insn: %08x",insn_i.word );
-
-			result = execute( &insn_i, (&registers), &pc, &cycleno, &data_mem, dmem_info );
-			print_reg( registers, pc);
-			print_mem(&data_mem, 1, 1, dmem_info.start,  (parent_y - 16 - MENU_BAR_H), dmem_info.start);
-			
-			/* Used until ABI is created for syscall exiting program */
-			if( (pc - entry_point)/4 >= (im_info.end - im_info.entry)/4 ) {
-				mvwprintw(mem_view, 1, 20, "Program exit. Number of cycles: %d", cycleno);
-				cleanup();
-				break;
-			}		
-
-			if( result == -1 ){
-				mvwprintw(mem_view, 1, 20, "Internal Error. Halting execution");
-				do{
-					input = getch();
-				} while( input != 'q'); /* Wait for user to quit */
-			
-				cleanup();
-				break;
-			} else if( result == EM_INT ){
-				mvwprintw(mem_view, 1, 20, "Invalid Arithmetic Instruction.");
-			} else if( result == EM_IMM ){
-				mvwprintw(mem_view, 1, 20, "Invalid Immediate Instruction.");
-			} else if( result == EM_LD ){
-				mvwprintw(mem_view, 1, 20, "Invalid Load Instruction.");
-			} else if( result == EM_ST ){
-				mvwprintw(mem_view, 1, 20, "Invalid Store Instruction.");
-			} else if( result == EM_LI ){
-				mvwprintw(mem_view, 1, 20, "Invalid Load Immediate Instruction.");
-			} else if( result == EM_B ){
-				mvwprintw(mem_view, 1, 20, "Invalid Branch Instruction.");
-			} else if( result == EM_SYS ){
-				mvwprintw(mem_view, 1, 20, "Invalid System Instruction.");
-			} else if( result == EM_NCPID ){
-				mvwprintw(mem_view, 1, 20, "Invalid Co-Processor ID.");
-			} else if( result == EM_CP ){
-				mvwprintw(mem_view, 1, 20, "Co-Processor Instructions are not available.");
-			}
-		} else {
-			mvwprintw(mem_view, 1, 1, "Key pressed: %c\n", input);
+	while(1){
+		/* Stepping through program */
+		old_pc = pc; /* save old PC */
+		printf("\nInsn:\t%08x\n",insn_i.word );
+//		printf("PC:\t%08x\n",pc);
+		result = execute( &insn_i, registers, &pc, &cycleno, &data_mem, dmem_info );
+		printf("Registers:\n");
+		print_reg( registers, pc);
+		/* Used until ABI is created for syscall exiting program */
+		if( (pc - entry_point)/4 >= (im_info.end - im_info.entry)/4 ) {
+			printf("Program exit. Number of cycles: %d", cycleno);
+			return 0;
 		}
-		draw_borders();
-		refresh_all();
-		refresh();
+		if( result == -1 ){
+			printf("Internal Error. Halting execution\n");
+			break;
+		} else if( result == EM_INT ){
+			printf("Invalid Arithmetic Instruction.\n");
+		} else if( result == EM_IMM ){
+			printf("Invalid Immediate Instruction.\n");
+		} else if( result == EM_LD ){
+			printf("Invalid Load Instruction.\n");
+		} else if( result == EM_ST ){
+			printf("Invalid Store Instruction.\n");
+		} else if( result == EM_LI ){
+			printf("Invalid Load Immediate Instruction.\n");
+		} else if( result == EM_B ){
+			printf("Invalid Branch Instruction.\n");
+		} else if( result == EM_SYS ){
+			printf("Invalid System Instruction.\n");
+		} else if( result == EM_NCPID ){
+			printf("Invalid Co-Processor ID.\n");
+		} else if( result == EM_CP ){
+			printf("Co-Processor Instructions are not available.\n");
+		} else {
+			printf("Proper Instruction\n");
+		}
 		code_line_num = (pc - entry_point + imem_offset )/4;
 		insn_i.word = insn_mem[ code_line_num ]; /* Saving instruction word */
-	}
-	/* Close window */
-	endwin();
-	return 0;
-
-}
-
-
-/* Checks if F5 has been pressed, to run program */
-int check_run_key( char c ) {
-	if( c == 'r'){//KEY_F(5) ){
-		return 1;
+		printf("updated pc\n");
 	}
 	return 0;
+
 }
-
-/* Checks if F10 has been pressed, to exit simulator */
-int check_exit_key( const char c ) {
-	if( c == 'q') {//KEY_F(10) ){
-		return 1;
-	}
-	return 0;
-}
-
-/* Cleans up memory allocation */
-int cleanup( void ) {
-
-
-	/* Deleting C:\system\win32  Gotta love windows jokes since it's crap */
-	delwin(mem_view);
-	delwin(reg_view);
-	delwin(asm_view);
-	delwin(menu_bar);
-	//endwin();
-	return 0;
-}
-
-/* draw borders for windows */
-int draw_borders( void ) {
-	wborder(asm_view, '|', '|', '-', '-', '#', '#', '#', '#');
-	wborder(reg_view, '|', '|', '-', '-', '#', '#', '#', '#');
-	wborder(mem_view, '|', '|', '-', '-', '#', '#', '#', '#');
-	return 0;
-}
-
-/* Refresh All Windows */
-int refresh_all( void ) {
-
-	wrefresh(mem_view);
-	wrefresh(reg_view);
-	wrefresh(asm_view);
-	wrefresh(menu_bar);
-	return 0;
-}
-
-
 /* Returns total number of lines in a file */
 int count_line_number( const char* filename ){
 	FILE* fp = fopen(filename, "r");
@@ -442,14 +326,17 @@ int display_asm( char*** asm_text, int line_start, int line_end, int line_max){
 I * any more register values can be added if needed, though unsure of what to
  * add
  * */
-int print_reg(uint32_t reg[32],  uint32_t pc){
+int print_reg(uint32_t* reg,  uint32_t pc){
 	int i;
 	
 	for(i = 0; i < 16; i++){
-		mvwprintw(reg_view, i, 1, "r[%d]:\t%08x", i, reg[i]);			
-		mvwprintw(reg_view, i, 18, "r[%d]:\t%08x", i+16, reg[i+16]);			
+	//	mvwprintw(reg_view, i, 1, "r[%d]:\t%08x", i, reg[i]);			
+	//	mvwprintw(reg_view, i, 18, "r[%d]:\t%08x", i+16, reg[i+16]);			
+		printf("r[%d]:\t%08x\tr[%d]:\t%08x\n", i, reg[i], i+1, reg[i+16]);
 	}
-	mvwprintw(reg_view, 1, 41, "pc:\t%08x", pc);			
+	printf("Special Registers\n");
+	printf("PC:\t%08x\n", pc);
+	//mvwprintw(reg_view, 1, 41, "pc:\t%08x", pc);			
 
 
 

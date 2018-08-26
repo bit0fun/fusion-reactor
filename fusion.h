@@ -97,26 +97,26 @@
 #define SHFT_IMM_LO_B		2 //0 -> 2
 
 /* Bit Field Macros */
-#define GET_RD(i)			(MASK_RD & i) >> 21
-#define GET_RSA(i)			(MASK_RSA & i) >> 16
-#define GET_RSB(i)			(MASK_RSB & i) >> 11
-#define GET_SHFT(i)			(MASK_SHFT & i) >> 4	
+#define GET_RD(i)			((MASK_RD & i) >> 21)
+#define GET_RSA(i)			((MASK_RSA & i) >> 16)
+#define GET_RSB(i)			((MASK_RSB & i) >> 11)
+#define GET_SHFT(i)			((MASK_SHFT & i) >> 4)
 #define GET_ALUOP(i)		(MASK_ALUOP & i)
-#define GET_IMM_I(i)		(MASK_IMM_I & i) >> 4
+#define GET_IMM_I(i)		((MASK_IMM_I & i) >> 4)
 #define GET_IMM_L(i)		(MASK_IMM_L & i)
-#define GET_FUNCT_L(i)		(MASK_FUNCT_L & i) >> 14
-#define GET_DSEL_LI(i)		(MASK_DSEL_LI & i) >> 17
+#define GET_FUNCT_L(i)		((MASK_FUNCT_L & i) >> 14)
+#define GET_DSEL_LI(i)		((MASK_DSEL_LI & i) >> 17)
 #define GET_IMM_LI(i)		(MASK_IMM_LI & i)
-#define GET_FUNCT_S(i)		( (MASK_FUNCT_S & i) >> 24 ) & 0x3
-#define GET_IMM_S(i)		(MASK_IMM_LO_S & i) | ( (MASK_IMM_HI_S & i) >> 10)
-#define GET_IMM_J(i)		(MASK_IMM_LO_J & i) | ( (MASK_IMM_HI_J & i) >> SHFT_IMM_HI_J)	
-#define GET_IMM_B(i)		( (MASK_IMM_LO_B & i) >> SHFT_IMM_LO_B ) | ( (MASK_IMM_HI_B & i) >> SHFT_IMM_HI_B ) 
+#define GET_FUNCT_S(i)		(( (MASK_FUNCT_S & i) >> 24 ) & 0x3)
+#define GET_IMM_S(i)		((MASK_IMM_LO_S & i) | ( (MASK_IMM_HI_S & i) >> 10))
+#define GET_IMM_J(i)		((MASK_IMM_LO_J & i) | ( (MASK_IMM_HI_J & i) >> SHFT_IMM_HI_J))	
+#define GET_IMM_B(i)		(( (MASK_IMM_LO_B & i) >> SHFT_IMM_LO_B ) | ( (MASK_IMM_HI_B & i) >> SHFT_IMM_HI_B ) )
 #define GET_FUNCT_B(i)		(MASK_FUNCT_B & i)
-#define GET_FUNCT_SYS(i)	(MASK_FUNCT_SYS & i) >> 8
+#define GET_FUNCT_SYS(i)	((MASK_FUNCT_SYS & i) >> 8)
 #define GET_IMM_SYS(i)		(MASK_IMM_SYS & i)
 
 /*Opcode related defines*/
-#define MASK_OPC			0xfc000000 //upper 6 bits gives opcode
+#define MASK_OPC			(0xfc000000) //upper 6 bits gives opcode
 #define MASK_R_OPC			OPC_INT
 #define MASK_LI_OPC			OPC_LI
 #define MASK_IMM_OPC		OPC_IMM
@@ -127,8 +127,8 @@
 #define MASK_WMEM_OPC		OPC_ST
 #define MASK_SYS_OPC		OPC_SYS //more system instructions may change this
 #define MASK_MSB_OPC		0x11000000	//31st bit of instruction
-#define GET_OPC(i)			(MASK_OPC & i) >>26  //shift to make upper 6 bits, fit in 1 byte
-#define MASK_NO_IMM			0x00000000
+#define GET_OPC(i)			((MASK_OPC & i) >>26)  //shift to make upper 6 bits, fit in 1 byte
+#define MASK_NO_IMM			(0x00000000)
 
 /*OPCode match macros*/
 #define IS_CP_INSN(i)	(GET_OPC(i) == MASK_MSB_OPC) 	//is coprocessor instruction if first bit of opcode is 1
