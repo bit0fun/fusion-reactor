@@ -52,6 +52,6 @@ Mkfile.old
 dkms.conf
 
 #ignore these files
-./code.txt
-./fusion-reactor
-./output.txt
+code.txt
+fusion-reactor
+output.txt
