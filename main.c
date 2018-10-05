@@ -10,7 +10,6 @@
 /* Simulation Parameters */
 #define DMEM_SIZE	2^(14)	/* Data memory size (kb) for simulation */
 
-/* Lazy approach. Pass struct to functions instead */
   const char* insn_type;
   const char* insn_name;
   uint8_t rd;
@@ -335,7 +334,7 @@ int print_reg(uint32_t* reg,  uint32_t pc){
 		printf("r[%d]:\t%08x\tr[%d]:\t%08x\n", i, reg[i], i+1, reg[i+16]);
 	}
 	printf("Special Registers\n");
-	printf("PC:\t%08x\n", pc);
+	printf("PC:\t%08x\n\n", pc);
 	//mvwprintw(reg_view, 1, 41, "pc:\t%08x", pc);			
 
 
