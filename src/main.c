@@ -3,7 +3,8 @@
 #include <string.h>
 #include <stdlib.h>
 //#include <ncurses.h>
-#include "elf_read.h"
+//#include "elf_read.h"
+#include "fusion-elf.h"
 #include "opc.h"  
 #include "cpu_sim.h"
 
@@ -26,13 +27,13 @@
 
 
 /* Max window dimensions */
-int parent_y, parent_x;
+//int parent_y, parent_x;
 
 /* Making the windows Global */
-WINDOW *menu_bar;
-WINDOW *asm_view;
-WINDOW *reg_view;
-WINDOW *mem_view;
+//WINDOW *menu_bar;
+//WINDOW *asm_view;
+//WINDOW *reg_view;
+//WINDOW *mem_view;
 
 
 /* Sizes and placement for windows
@@ -106,17 +107,17 @@ int main(int argc, char** argv){
 	//read_asm_file(asm_filename, &asm_text);
 	
 	/*Create objdump file to be printed in code area */
-	char create_objdump_file_command[512] = "fusion-elf-objdump -d \0";
+	//char create_objdump_file_command[512] = "fusion-elf-objdump -d \0";
 	//if( sizeof( argv[2] ) > 478 ){
 	//	return -1;
 	//}
-	strncat(create_objdump_file_command, argv[1], 478);
-	strncat(create_objdump_file_command, " >> code.txt\0", 13);
-	if(system(create_objdump_file_command))
-		printf("Could not create objdump file");	  
+	//strncat(create_objdump_file_command, argv[1], 478);
+	//strncat(create_objdump_file_command, " >> code.txt\0", 13);
+	//if(system(create_objdump_file_command))
+//		printf("Could not create objdump file");	  
 	
-    asm_line_count = count_line_number( "code.txt" );
-	read_asm_file("code.txt", &asm_text);
+ //   asm_line_count = count_line_number( "code.txt" );
+//	read_asm_file("code.txt", &asm_text);
 
 //	int elf_file_len = strlen( argv[2] );
 //	char* elf_filename = (char*) calloc(asm_file_len, sizeof(char));
@@ -124,16 +125,19 @@ int main(int argc, char** argv){
 
 
 	/* Initializing ELF File */
-	int result = read_elf(argv[1], &insn_mem, data_mem, &im_info, &dmem_info);
+	//int result = read_elf(argv[1], &insn_mem, data_mem, &im_info, &dmem_info);
+	int result = create_memspace( argv[1] );
 	if( result ){
-		printf("Cannot parse elf\n");
+		printf("ERROR: Issues setting up virtual memory space from ELF file.\n");
+		return -1;
 	}
 
 
-	entry_point = im_info.entry;
-	int cycleno = 0;
-	pc = im_info.entry;
-    code_line_num = 0;
+//	entry_point = im_info.entry;
+	entry_point = entry; 
+	uint32_t cycleno = 0;
+	pc = (entry - (uint32_t)((intptr_t)imem)); /* offset from memory where instructions are */
+	code_line_num = 0;
 	char* code_win_title = "Assembly Code";
 	char input;
 	insn_info insn_i;
@@ -144,9 +148,9 @@ int main(int argc, char** argv){
 	}
 */
 
-	uint32_t imem_offset = entry_point - im_info.start; /* needed to find proper starting position */
-	code_line_num += (pc - entry_point + imem_offset) /4;
-	insn_i.word = insn_mem[ code_line_num ]; /* Saving instruction word */
+	uint32_t imem_offset = entry_point - (uint32_t)((intptr_t)imem); /* needed to find proper starting position */
+	//code_line_num += (pc - entry_point + imem_offset) /4;
+	insn_i.word = (uint32_t)(*(imem + (pc>>2)));//insn_mem[ code_line_num ]; /* Saving instruction word */
 	uint32_t old_pc = 0;
 	while(1){
 		/* Stepping through program */
@@ -157,7 +161,7 @@ int main(int argc, char** argv){
 		printf("Registers:\n");
 		print_reg( registers, pc);
 		/* Used until ABI is created for syscall exiting program */
-		if( (pc - entry_point)/4 >= (im_info.end - im_info.entry)/4 ) {
+		if( pc >= ( ((intptr_t)imem_end) - entry)  ) {
 			printf("Program exit. Number of cycles: %d", cycleno);
 			return 0;
 		}
@@ -185,13 +189,15 @@ int main(int argc, char** argv){
 		} else {
 			printf("Proper Instruction\n");
 		}
-		code_line_num = (pc - entry_point + imem_offset )/4;
-		insn_i.word = insn_mem[ code_line_num ]; /* Saving instruction word */
+//		code_line_num = (pc - entry_point + imem_offset )/4;
+		insn_i.word = insn_i.word = (uint32_t)(*(imem + (pc >> 2)));// insn_mem[ code_line_num ]; /* Saving instruction word */
 		printf("updated pc\n");
 	}
 	return 0;
 
 }
+/* Not used right now */
+#if 0
 /* Returns total number of lines in a file */
 int count_line_number( const char* filename ){
 	FILE* fp = fopen(filename, "r");
@@ -212,7 +218,6 @@ int count_line_number( const char* filename ){
 	//mvwprintw(asm_view, 1, 3, "Number of lines in file: %d", numline);
 	return numline;
 }
-
 
 
 /* Read entirety of assembly file
@@ -321,6 +326,8 @@ int display_asm( char*** asm_text, int line_start, int line_end, int line_max){
 	return 0;
 }
 
+#endif 
+
 /* Prints out register values to proper window
 I * any more register values can be added if needed, though unsure of what to
  * add
@@ -334,13 +341,14 @@ int print_reg(uint32_t* reg,  uint32_t pc){
 		printf("r[%d]:\t%08x\tr[%d]:\t%08x\n", i, reg[i], i+1, reg[i+16]);
 	}
 	printf("Special Registers\n");
-	printf("PC:\t%08x\n\n", pc);
+	printf("PC:\t%08x\n\n", pc );
 	//mvwprintw(reg_view, 1, 41, "pc:\t%08x", pc);			
 
 
 
 }
 
+#if 0
 /* Prints out memory to memory view
  * mem is the actual array for the memory
  * xpos and ypos refer to the position within the window to print out
@@ -365,3 +373,4 @@ int print_mem(uint32_t** mem, int xpos, int ypos, uint32_t addr_start, int naddr
 	} 
 
 }
+#endif 

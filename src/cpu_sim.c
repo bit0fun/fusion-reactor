@@ -2,7 +2,7 @@
 
 /* Simulation of Fetch stage, returns instruction */
 uint32_t fetch( uint32_t** imem, uint32_t pc ){
-	return (*imem)[ pc/4 ];
+	return (*imem)[ (pc>>2) ];
 }
 
 /* Simulation execution of instructions for pure functionality
@@ -164,7 +164,7 @@ int execute( insn_info* insn_i, uint32_t *registers, uint32_t* pc, uint32_t* cyc
 					break;
 				case 4 :
 					registers[rd] |= lui( imm );
-					printf("Value from lui: %08x\n", (unsigned long)lui(imm));
+					//printf("Value from lui: %08x\n", (unsigned long)lui(imm));
 					break;
 				case 5 :
 					registers[rd] |= lusi( imm );
