@@ -94,31 +94,35 @@ uint32_t compi( uint32_t rsa, uint16_t imm ){
 
 
 /* Load */
-uint32_t lw( uint32_t* data_mem, dataseg_info dseg_i, uint32_t rsa, uint16_t imm ){ 
+uint32_t lw (uint32_t rsa, uint16_t imm ){ 
 	uint32_t offset = ( ( rsa + imm ));
-	if( offset > dseg_i.end || offset < dseg_i.start ){ /* need to check bounds first, can't access outside memory otherwise segfault */
+	union ptr2uint dmem_p = (void *)dmem;
+	union ptr2uint dmem_end_p = (void *)dmem_end;
+	if( (offset > dmem_end_p.uint ) || (offset < ((intptr_t)dmem_p.uint)) ){ /* need to check bounds first, can't access outside memory otherwise segfault */
 		/* segfault: writing to memory outside of data segment */
 		printf("ERROR:\tSegfault in memory read detected at address %08x.\nValue attempted to write:%08x\n",(unsigned long)offset, (unsigned long)rsa);
 		return 0; /* return 0 for segfault or other memory error */
 	} else {
 		/* no issue, can write to memory just fine, so need to get 32 bit
 		 * aligned address  */
-		offset = ( ( rsa + (uint32_t)( imm & 0x3fff) ) - dseg_i.start) >> 2;
-		return data_mem[offset];
+		offset = ( ( rsa + (uint32_t)( imm & 0x3fff) ) ) ;
+		return	*((uint32_t *)(dmem + offset));//data_mem[offset];
 	}
 }
 
 uint32_t lth( uint32_t* data_mem, dataseg_info dseg_i, uint32_t rsa, uint16_t imm ){ 
 	uint32_t offset = ( ( rsa + imm ));
-	if( offset > dseg_i.end || offset < dseg_i.start ){ /* need to check bounds first, can't access outside memory otherwise segfault */
+	union ptr2uint dmem_p = (void *)dmem;
+	union ptr2uint dmem_end_p = (void *)dmem_end;
+	if( (offset > dmem_end_p.uint ) || (offset < ((intptr_t)dmem_p.uint)) ){ /* need to check bounds first, can't access outside memory otherwise segfault */
 		/* segfault: writing to memory outside of data segment */
 		printf("ERROR:\tSegfault in memory read detected at address %08x.\nValue attempted to write:%08x\n",(unsigned long)offset, (unsigned long)rsa);
 		return 0; /* return 0 for segfault or other memory error */
 	} else {
 		/* no issue, can write to memory just fine, so need to get 32 bit
 		 * aligned address  */
-		offset = ( ( rsa + (uint32_t)( imm & 0x3fff) ) - dseg_i.start) >> 2;
-		return ( data_mem[offset] & 0xFFFFFF00) >> 8; /* May need to double check, due to running big endian on little endian */
+		offset = ( ( rsa + (uint32_t)( imm & 0x3fff) ) - dmem_p.uint);
+		return ( *((uint32_t)(dmem + offset)) & 0xFFFFFF00) >> 8; /* May need to double check, due to running big endian on little endian */
 	}
 }
 
@@ -132,7 +136,7 @@ uint16_t lh( uint32_t* data_mem, dataseg_info dseg_i, uint32_t rsa, uint16_t imm
 		/* no issue, can write to memory just fine, so need to get 32 bit
 		 * aligned address  */
 		offset = ( ( rsa + (uint32_t)( imm & 0x3fff) ) - dseg_i.start) >> 2;
-		return (uint16_t)(( data_mem[offset] & 0xFFFF0000) >> 16); /* May need to double check, due to running big endian on little endian */
+		return (uint16_t)(( *((uint32_t)(dmem + offset)) & 0xFFFF0000) >> 16); /* May need to double check, due to running big endian on little endian */
 	}
 }
 

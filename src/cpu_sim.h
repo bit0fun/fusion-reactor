@@ -3,7 +3,7 @@
 #include "fusion-opc.h"
 #include "emul_error.h"
 #include "opc.h"
-#include "parseelf.h"
+#include "fusion-elf.h"
 
 #define TRUE (_Bool) 1
 #define FALSE (_Bool) 0

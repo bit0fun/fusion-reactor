@@ -7,6 +7,7 @@
 #include "fusion-elf.h"
 #include "opc.h"  
 #include "cpu_sim.h"
+#include <byteswap.h>
 
 /* Simulation Parameters */
 #define DMEM_SIZE	2^(14)	/* Data memory size (kb) for simulation */
@@ -150,7 +151,8 @@ int main(int argc, char** argv){
 
 	uint32_t imem_offset = entry_point - (uint32_t)((intptr_t)imem); /* needed to find proper starting position */
 	//code_line_num += (pc - entry_point + imem_offset) /4;
-	insn_i.word = (uint32_t)(*(imem + (pc>>2)));//insn_mem[ code_line_num ]; /* Saving instruction word */
+	/* required for little endian machine */
+	insn_i.word = bswap_32( (uint32_t)(*(imem + (pc>>2))) ) ;//insn_mem[ code_line_num ]; /* Saving instruction word */
 	uint32_t old_pc = 0;
 	while(1){
 		/* Stepping through program */
@@ -338,7 +340,7 @@ int print_reg(uint32_t* reg,  uint32_t pc){
 	for(i = 0; i < 16; i++){
 	//	mvwprintw(reg_view, i, 1, "r[%d]:\t%08x", i, reg[i]);			
 	//	mvwprintw(reg_view, i, 18, "r[%d]:\t%08x", i+16, reg[i+16]);			
-		printf("r[%d]:\t%08x\tr[%d]:\t%08x\n", i, reg[i], i+1, reg[i+16]);
+		printf("r[%d]:\t%08x\tr[%d]:\t%08x\n", i, bswap_32(reg[i]), i+1, bswap_32(reg[i+16]) );
 	}
 	printf("Special Registers\n");
 	printf("PC:\t%08x\n\n", pc );

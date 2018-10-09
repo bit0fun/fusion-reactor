@@ -1,4 +1,4 @@
-#include "parseelf.h"
+//#include "parseelf.h"
 #define HOST_LITTLE_ENDIAN
 
 /* mmaped variable for elf file */
