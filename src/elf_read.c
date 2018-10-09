@@ -1,4 +1,15 @@
 #include "elf_read.h"
+
+/* returns pointer to mapped array */
+uint8_t* open_elf( const char* filename,  )
+
+
+
+void close_elf( void ){
+
+
+}
+
 int	read_elf( const char* filename, uint32_t** text_segp, uint32_t** data_segp, textseg_info* tseg_i, dataseg_info* dseg_i ){
 
 	Elf32_Ehdr* elf_hdr = malloc( sizeof(Elf32_Ehdr) ); 

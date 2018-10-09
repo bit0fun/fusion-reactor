@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <ncurses.h>
+//#include <ncurses.h>
 #include "elf_read.h"
 #include "opc.h"  
 #include "cpu_sim.h"

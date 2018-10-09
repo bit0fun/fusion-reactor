@@ -1,0 +1,1 @@
+SUBDIRS = fusion-elf src
