@@ -7,7 +7,7 @@ uint32_t fetch( uint32_t** imem, uint32_t pc ){
 
 /* Simulation execution of instructions for pure functionality
  * of the ISA. no additional features are to be used here */
-int execute( insn_info* insn_i, uint32_t *registers, uint32_t* pc, uint32_t* cycleno, uint32_t* data_mem, dataseg_info dseg_i ){	
+int execute( insn_info* insn_i, uint32_t *registers, uint32_t* pc, uint32_t* cycleno ){	
 	uint32_t insn_word = insn_i->word;
 //	uint32_t* gpregf = (*registers);
 	insn_t insn_parts = parse_insn( insn_word );	
@@ -123,19 +123,19 @@ int execute( insn_info* insn_i, uint32_t *registers, uint32_t* pc, uint32_t* cyc
 			switch( insn_parts.ltype.funct ){
 				/* Word */
 				case 0 :
-					registers[rd] = lw(data_mem, dseg_i, rsa, imm);
+					registers[rd] = lw( rsa, imm);
 					break;
 				/* Half Word ( upper ) */
 				case 1 :
-					registers[rd] = lh(data_mem, dseg_i, rsa, imm);
+					registers[rd] = lh( rsa, imm);
 					break;
 				/* 3 Quarter Word ( upper ) */
 				case 2 :
-					registers[rd] = lth(data_mem, dseg_i, rsa, imm);
+					registers[rd] = lth( rsa, imm);
 					break;
 				/* Byte */
 				case 3 :
-					registers[rd] = lb(data_mem, dseg_i, rsa, imm);
+					registers[rd] = lb( rsa, imm);
 					break;
 				default :
 					*pc += 4;	/* Increment PC */
@@ -210,19 +210,19 @@ int execute( insn_info* insn_i, uint32_t *registers, uint32_t* pc, uint32_t* cyc
 			switch( insn_parts.ltype.funct ){
 				/* Word */
 				case 0 :
-					sw(data_mem, dseg_i, rsa, rsb, imm);
+					sw( rsa, rsb, imm);
 					break;
 				/* Half Word ( upper ) */
 				case 1 :
-					sh(data_mem, dseg_i, rsa, rsb, imm);
+					sh( rsa, rsb, imm);
 					break;
 				/* 3 Quarter Word ( upper ) */
 				case 2 :
-					sth(data_mem, dseg_i, rsa, rsb, imm);
+					sth( rsa, rsb, imm);
 					break;
 				/* Byte */
 				case 3 :
-					sb(data_mem, dseg_i, rsa, rsb, imm);
+					sb( rsa, rsb, imm);
 					break;
 				default :
 					*pc += 4;	/* Increment PC */

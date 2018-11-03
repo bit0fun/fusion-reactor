@@ -1,0 +1,59 @@
+Makefile: Makefile.in config.status
+	./config.status $@
+
+config.status: configure
+	./config.status --recheck
+
+
+CC			= gcc
+LDFLAGS		= -lncurses 
+CFLAGS		= -g 
+package		=@PACKAGE_NAME@
+version		=@PACKAGE_VERSION@
+tarname		=@PACKAGE_TARNAME@
+distdir		=$(tarname)-$(version)
+OBJ			= main.o elf_read.o parseelf.o opc.o cpu_sim.o
+DEPS		= elf_read.h parseelf.h fusion-opc.h fusion.h cpu.h opc.h cpu_sim.h
+prefix		= @prefix@
+exec_prefix = @exec_prefix@
+bindir		=@bindir@
+DESTDIR 	=$(prefix)
+
+
+all: $(PRGNAME)
+
+$(package): $(OBJ)
+	$(CC) $(CFLAGS)  -o $@ $^ $(LDFLAGS) 
+		
+%.o: %.c $(DEPS)
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+fusion-elf:
+	$(MAKE) -C fusion-elf
+
+clean:
+	-rm -rf *.o *.gch
+
+$(distdir): FORCE
+	mkdir -p $(distdir)/src
+	mkdir -p $(distdir)
+	cp configure.ac $(distdir)
+	cp configure $(distdir)
+	cp Makefile.in $(distdir)
+	cp src/Makefile.in $(distdir)
+	cp src/*.c $(distdir)
+	cp src/*.h $(distdir)
+	cp -r fusion-elf $(distdir)
+
+distclean:
+	-rm -rf *.o *.gch $(DESTDIR)$(bindir)
+
+install: 
+	install -d $(DESTDIR)$(bindir)
+
+
+uninstall:
+	-rma -rf $(DESTDIR)$(bindir)/fusion-reactor
+
+
+.PHONY: FORCE all clean dist distcheck distclean install uninstall

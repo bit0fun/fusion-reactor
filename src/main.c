@@ -4,7 +4,7 @@
 #include <stdlib.h>
 //#include <ncurses.h>
 //#include "elf_read.h"
-#include "fusion-elf.h"
+#include "../fusion-elf/fusion-elf.h"
 #include "opc.h"  
 #include "cpu_sim.h"
 #include <byteswap.h>
@@ -83,8 +83,8 @@ int main(int argc, char** argv){
 	int 	asm_line_count = 0;
 
 	/* ELF File data */
-	textseg_info im_info;
-	dataseg_info dmem_info;
+	//textseg_info im_info;
+	//dataseg_info dmem_info;
 
 	/* Memory Data */
 	data_mem = calloc( DMEM_SIZE, sizeof( uint32_t ) );	
@@ -94,7 +94,7 @@ int main(int argc, char** argv){
 	
 	/* Get assembly file to display */
 	if(argc != 2) {
-		endwin();
+	//	endwin();
 		printf("Usage: fusion-reactor <file.elf>\n ");
 		return -1;
 	}
@@ -159,7 +159,7 @@ int main(int argc, char** argv){
 		old_pc = pc; /* save old PC */
 		printf("\nInsn:\t%08x\n",insn_i.word );
 //		printf("PC:\t%08x\n",pc);
-		result = execute( &insn_i, registers, &pc, &cycleno, &data_mem, dmem_info );
+		result = execute( &insn_i, registers, &pc, &cycleno );
 		printf("Registers:\n");
 		print_reg( registers, pc);
 		/* Used until ABI is created for syscall exiting program */

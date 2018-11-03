@@ -102,7 +102,7 @@ PROGRAMS = $(bin_PROGRAMS)
 am_fusion_reactor_OBJECTS = fusion_reactor-main.$(OBJEXT) \
 	fusion_reactor-opc.$(OBJEXT) fusion_reactor-cpu_sim.$(OBJEXT)
 fusion_reactor_OBJECTS = $(am_fusion_reactor_OBJECTS)
-fusion_reactor_LDADD = $(LDADD)
+fusion_reactor_DEPENDENCIES = ../fusion-elf/libfusionelf.a
 fusion_reactor_LINK = $(CCLD) $(fusion_reactor_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
 AM_V_P = $(am__v_P_@AM_V@)
@@ -266,8 +266,9 @@ fusion_reactor_SOURCES = main.c 		\
 							fusion-opc.h \
 							emul_error.h
 
-fusion_reactor_CFLAGS = -I$(top_srcdir)/fusion-elf
-fusion_reactor_LOAD = ../fusion-elf/libfusionelf.a
+fusion_reactor_CFLAGS = -I $(top_srcdir)/fusion-elf
+fusion_reactor_LOAD = -L $(top_srcdir)/fusion-elf/libfusionelf.a 
+fusion_reactor_LDADD = ../fusion-elf/libfusionelf.a
 all: all-am
 
 .SUFFIXES:
