@@ -1,5 +1,9 @@
 bin_PROGRAMS = fusion_reactor
 fusion_reactor_SOURCES = 	main.c 		\
+							simtypes.c	\
+							simtypes.h	\
+							setup.c		\
+							setup.h		\
 						 	opc.c 		\
 							opc.h		\
 							cpu_sim.c	\

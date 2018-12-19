@@ -7,5 +7,6 @@ inline int check_endian(void){
 		char		c[4];
 	}endt = { 0xff000000 };	/* 0 if little endian, 0xff if big */
 
-	return endt.c[0] == 0x0;	/* Make branches easier for many architectures */		
+	return endt.c[0] == 0x0;	/* Make branches easier for many
+								   (little endian) architectures */		
 }
