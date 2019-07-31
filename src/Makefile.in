@@ -100,7 +100,10 @@ CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
 am_fusion_reactor_OBJECTS = fusion_reactor-main.$(OBJEXT) \
-	fusion_reactor-opc.$(OBJEXT) fusion_reactor-cpu_sim.$(OBJEXT)
+	fusion_reactor-memory.$(OBJEXT) \
+	fusion_reactor-simtypes.$(OBJEXT) \
+	fusion_reactor-setup.$(OBJEXT) fusion_reactor-opc.$(OBJEXT) \
+	fusion_reactor-cpu_sim.$(OBJEXT)
 fusion_reactor_OBJECTS = $(am_fusion_reactor_OBJECTS)
 fusion_reactor_DEPENDENCIES = ../fusion-elf/libfusionelf.a
 fusion_reactor_LINK = $(CCLD) $(fusion_reactor_CFLAGS) $(CFLAGS) \
@@ -122,7 +125,10 @@ depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__maybe_remake_depfiles = depfiles
 am__depfiles_remade = ./$(DEPDIR)/fusion_reactor-cpu_sim.Po \
 	./$(DEPDIR)/fusion_reactor-main.Po \
-	./$(DEPDIR)/fusion_reactor-opc.Po
+	./$(DEPDIR)/fusion_reactor-memory.Po \
+	./$(DEPDIR)/fusion_reactor-opc.Po \
+	./$(DEPDIR)/fusion_reactor-setup.Po \
+	./$(DEPDIR)/fusion_reactor-simtypes.Po
 am__mv = mv -f
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -258,10 +264,18 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 fusion_reactor_SOURCES = main.c 		\
+							memory.c	\
+							memory.h	\
+							memcfg.h	\
+							simtypes.c	\
+							simtypes.h	\
+							setup.c		\
+							setup.h		\
 						 	opc.c 		\
 							opc.h		\
 							cpu_sim.c	\
 							cpu_sim.h	\
+							simsig.h	\
 							fusion.h	\
 							fusion-opc.h \
 							emul_error.h
@@ -357,7 +371,10 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fusion_reactor-cpu_sim.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fusion_reactor-main.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fusion_reactor-memory.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fusion_reactor-opc.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fusion_reactor-setup.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fusion_reactor-simtypes.Po@am__quote@ # am--include-marker
 
 $(am__depfiles_remade):
 	@$(MKDIR_P) $(@D)
@@ -392,6 +409,48 @@ fusion_reactor-main.obj: main.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='main.c' object='fusion_reactor-main.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(fusion_reactor_CFLAGS) $(CFLAGS) -c -o fusion_reactor-main.obj `if test -f 'main.c'; then $(CYGPATH_W) 'main.c'; else $(CYGPATH_W) '$(srcdir)/main.c'; fi`
+
+fusion_reactor-memory.o: memory.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(fusion_reactor_CFLAGS) $(CFLAGS) -MT fusion_reactor-memory.o -MD -MP -MF $(DEPDIR)/fusion_reactor-memory.Tpo -c -o fusion_reactor-memory.o `test -f 'memory.c' || echo '$(srcdir)/'`memory.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/fusion_reactor-memory.Tpo $(DEPDIR)/fusion_reactor-memory.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='memory.c' object='fusion_reactor-memory.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(fusion_reactor_CFLAGS) $(CFLAGS) -c -o fusion_reactor-memory.o `test -f 'memory.c' || echo '$(srcdir)/'`memory.c
+
+fusion_reactor-memory.obj: memory.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(fusion_reactor_CFLAGS) $(CFLAGS) -MT fusion_reactor-memory.obj -MD -MP -MF $(DEPDIR)/fusion_reactor-memory.Tpo -c -o fusion_reactor-memory.obj `if test -f 'memory.c'; then $(CYGPATH_W) 'memory.c'; else $(CYGPATH_W) '$(srcdir)/memory.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/fusion_reactor-memory.Tpo $(DEPDIR)/fusion_reactor-memory.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='memory.c' object='fusion_reactor-memory.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(fusion_reactor_CFLAGS) $(CFLAGS) -c -o fusion_reactor-memory.obj `if test -f 'memory.c'; then $(CYGPATH_W) 'memory.c'; else $(CYGPATH_W) '$(srcdir)/memory.c'; fi`
+
+fusion_reactor-simtypes.o: simtypes.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(fusion_reactor_CFLAGS) $(CFLAGS) -MT fusion_reactor-simtypes.o -MD -MP -MF $(DEPDIR)/fusion_reactor-simtypes.Tpo -c -o fusion_reactor-simtypes.o `test -f 'simtypes.c' || echo '$(srcdir)/'`simtypes.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/fusion_reactor-simtypes.Tpo $(DEPDIR)/fusion_reactor-simtypes.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='simtypes.c' object='fusion_reactor-simtypes.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(fusion_reactor_CFLAGS) $(CFLAGS) -c -o fusion_reactor-simtypes.o `test -f 'simtypes.c' || echo '$(srcdir)/'`simtypes.c
+
+fusion_reactor-simtypes.obj: simtypes.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(fusion_reactor_CFLAGS) $(CFLAGS) -MT fusion_reactor-simtypes.obj -MD -MP -MF $(DEPDIR)/fusion_reactor-simtypes.Tpo -c -o fusion_reactor-simtypes.obj `if test -f 'simtypes.c'; then $(CYGPATH_W) 'simtypes.c'; else $(CYGPATH_W) '$(srcdir)/simtypes.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/fusion_reactor-simtypes.Tpo $(DEPDIR)/fusion_reactor-simtypes.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='simtypes.c' object='fusion_reactor-simtypes.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(fusion_reactor_CFLAGS) $(CFLAGS) -c -o fusion_reactor-simtypes.obj `if test -f 'simtypes.c'; then $(CYGPATH_W) 'simtypes.c'; else $(CYGPATH_W) '$(srcdir)/simtypes.c'; fi`
+
+fusion_reactor-setup.o: setup.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(fusion_reactor_CFLAGS) $(CFLAGS) -MT fusion_reactor-setup.o -MD -MP -MF $(DEPDIR)/fusion_reactor-setup.Tpo -c -o fusion_reactor-setup.o `test -f 'setup.c' || echo '$(srcdir)/'`setup.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/fusion_reactor-setup.Tpo $(DEPDIR)/fusion_reactor-setup.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='setup.c' object='fusion_reactor-setup.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(fusion_reactor_CFLAGS) $(CFLAGS) -c -o fusion_reactor-setup.o `test -f 'setup.c' || echo '$(srcdir)/'`setup.c
+
+fusion_reactor-setup.obj: setup.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(fusion_reactor_CFLAGS) $(CFLAGS) -MT fusion_reactor-setup.obj -MD -MP -MF $(DEPDIR)/fusion_reactor-setup.Tpo -c -o fusion_reactor-setup.obj `if test -f 'setup.c'; then $(CYGPATH_W) 'setup.c'; else $(CYGPATH_W) '$(srcdir)/setup.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/fusion_reactor-setup.Tpo $(DEPDIR)/fusion_reactor-setup.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='setup.c' object='fusion_reactor-setup.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(fusion_reactor_CFLAGS) $(CFLAGS) -c -o fusion_reactor-setup.obj `if test -f 'setup.c'; then $(CYGPATH_W) 'setup.c'; else $(CYGPATH_W) '$(srcdir)/setup.c'; fi`
 
 fusion_reactor-opc.o: opc.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(fusion_reactor_CFLAGS) $(CFLAGS) -MT fusion_reactor-opc.o -MD -MP -MF $(DEPDIR)/fusion_reactor-opc.Tpo -c -o fusion_reactor-opc.o `test -f 'opc.c' || echo '$(srcdir)/'`opc.c
@@ -550,7 +609,10 @@ clean-am: clean-binPROGRAMS clean-generic mostlyclean-am
 distclean: distclean-am
 		-rm -f ./$(DEPDIR)/fusion_reactor-cpu_sim.Po
 	-rm -f ./$(DEPDIR)/fusion_reactor-main.Po
+	-rm -f ./$(DEPDIR)/fusion_reactor-memory.Po
 	-rm -f ./$(DEPDIR)/fusion_reactor-opc.Po
+	-rm -f ./$(DEPDIR)/fusion_reactor-setup.Po
+	-rm -f ./$(DEPDIR)/fusion_reactor-simtypes.Po
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -598,7 +660,10 @@ installcheck-am:
 maintainer-clean: maintainer-clean-am
 		-rm -f ./$(DEPDIR)/fusion_reactor-cpu_sim.Po
 	-rm -f ./$(DEPDIR)/fusion_reactor-main.Po
+	-rm -f ./$(DEPDIR)/fusion_reactor-memory.Po
 	-rm -f ./$(DEPDIR)/fusion_reactor-opc.Po
+	-rm -f ./$(DEPDIR)/fusion_reactor-setup.Po
+	-rm -f ./$(DEPDIR)/fusion_reactor-simtypes.Po
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 

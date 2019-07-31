@@ -1,5 +1,8 @@
 bin_PROGRAMS = fusion_reactor
 fusion_reactor_SOURCES = 	main.c 		\
+							memory.c	\
+							memory.h	\
+							memcfg.h	\
 							simtypes.c	\
 							simtypes.h	\
 							setup.c		\
@@ -8,6 +11,7 @@ fusion_reactor_SOURCES = 	main.c 		\
 							opc.h		\
 							cpu_sim.c	\
 							cpu_sim.h	\
+							simsig.h	\
 							fusion.h	\
 							fusion-opc.h \
 							emul_error.h

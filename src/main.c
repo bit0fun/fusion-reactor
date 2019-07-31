@@ -6,7 +6,9 @@
 //#include "elf_read.h"
 #include "../fusion-elf/fusion-elf.h"
 #include "opc.h"  
+#include "setup.h"
 #include "cpu_sim.h"
+#include "memory.h"
 #include <byteswap.h>
 
 /* Simulation Parameters */
@@ -20,9 +22,6 @@
   uint32_t pc;   /* Actual PC value */
   uint32_t entry_point;
   uint32_t imm;
-  uint32_t* data_mem;
-  uint32_t registers[32];
-  uint32_t* insn_mem;
   uint32_t code_line_num;
 
 
@@ -87,8 +86,8 @@ int main(int argc, char** argv){
 	//dataseg_info dmem_info;
 
 	/* Memory Data */
-	data_mem = calloc( DMEM_SIZE, sizeof( uint32_t ) );	
-	insn_mem = NULL; /* needs to be allocated after getting ELF file */
+//	data_mem = calloc( DMEM_SIZE, sizeof( uint32_t ) );	
+//	insn_mem = NULL; /* needs to be allocated after getting ELF file */
 
 
 	
@@ -133,14 +132,15 @@ int main(int argc, char** argv){
 		return -1;
 	}
 
-
+	imem = (fusion_addr_t *)insn_mem.m;
+	dmem = data_mem.m;
 //	entry_point = im_info.entry;
 	entry_point = entry; 
 	uint32_t cycleno = 0;
-	pc = (entry - (uint32_t)((intptr_t)imem)); /* offset from memory where instructions are */
+	pc = entry; /* offset from memory where instructions are */
 	code_line_num = 0;
 	char* code_win_title = "Assembly Code";
-	char input;
+	char input = '\0';
 	insn_info insn_i;
 /* Debugging memory passed */
 /*	printf("\nPassed memory\n");
@@ -148,22 +148,22 @@ int main(int argc, char** argv){
 		printf("@:%08x |\t %08x\n", ((i*4)+entry_point), (insn_mem)[i]);
 	}
 */
-
-	uint32_t imem_offset = entry_point - (uint32_t)((intptr_t)imem); /* needed to find proper starting position */
+//	uint32_t imem_offset = entry_point - (uint32_t)((intptr_t)imem); /* needed to find proper starting position */
 	//code_line_num += (pc - entry_point + imem_offset) /4;
 	/* required for little endian machine */
-	insn_i.word = bswap_32( (uint32_t)(*(imem + (pc>>2))) ) ;//insn_mem[ code_line_num ]; /* Saving instruction word */
+//	insn_i.word = ( (uint32_t)(*(imem + (pc>>2))) ) ;//insn_mem[ code_line_num ]; /* Saving instruction word */
+	read_mem( pc, &insn_i.word, 4); /* 32 bit instruction */	
 	uint32_t old_pc = 0;
 	while(1){
 		/* Stepping through program */
 		old_pc = pc; /* save old PC */
 		printf("\nInsn:\t%08x\n",insn_i.word );
-//		printf("PC:\t%08x\n",pc);
+		printf("PC:\t%08x\n",pc);
 		result = execute( &insn_i, registers, &pc, &cycleno );
 		printf("Registers:\n");
 		print_reg( registers, pc);
 		/* Used until ABI is created for syscall exiting program */
-		if( pc >= ( ((intptr_t)imem_end) - entry)  ) {
+		if( pc >= ( (ROM_START + ROM_SIZE))  ) {
 			printf("Program exit. Number of cycles: %d", cycleno);
 			return 0;
 		}
@@ -192,9 +192,23 @@ int main(int argc, char** argv){
 			printf("Proper Instruction\n");
 		}
 //		code_line_num = (pc - entry_point + imem_offset )/4;
-		insn_i.word = insn_i.word = (uint32_t)(*(imem + (pc >> 2)));// insn_mem[ code_line_num ]; /* Saving instruction word */
+//		insn_i.word = insn_i.word = (uint32_t)(*(imem + (pc >> 2)));// insn_mem[ code_line_num ]; /* Saving instruction word */
+		read_mem( pc, &insn_i.word, 4); /* 32 bit instruction */	
 		printf("updated pc\n");
+		printf("Next:\n");
+		
+		while( 1 ){
+			input = getchar();
+			if( input == '\n' ){
+				break;
+			} else if( input == 'q'  ) {
+				goto end_sim;
+			}
+		}
 	}
+
+end_sim:
+	free_memory( memblocks, 2);
 	return 0;
 
 }
@@ -340,7 +354,7 @@ int print_reg(uint32_t* reg,  uint32_t pc){
 	for(i = 0; i < 16; i++){
 	//	mvwprintw(reg_view, i, 1, "r[%d]:\t%08x", i, reg[i]);			
 	//	mvwprintw(reg_view, i, 18, "r[%d]:\t%08x", i+16, reg[i+16]);			
-		printf("r[%d]:\t%08x\tr[%d]:\t%08x\n", i, bswap_32(reg[i]), i+1, bswap_32(reg[i+16]) );
+		printf("r[%d]:\t%08x\tr[%d]:\t%08x\n", i, (reg[i]), i+16, (reg[i+16]) );
 	}
 	printf("Special Registers\n");
 	printf("PC:\t%08x\n\n", pc );

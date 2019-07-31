@@ -6,6 +6,7 @@
 
 #ifndef SYMTYPE_H
 #define SYMTYPE_H
+#include <stdint.h>
 
 /** type definitions **/ 
 typedef uint32_t fcaddr_t; /* 32 bit address space; useful for future changes */
@@ -22,8 +23,8 @@ typedef uint32_t fcaddr_t; /* 32 bit address space; useful for future changes */
 					  | ((N & 0x0000ff00) << 8)  \
 					  |  (N << 24) )
 
-#define BIG_ENDIAN	0
-#define LITTLE_ENDIAN 1
+//#define BIG_ENDIAN	0
+//#define LITTLE_ENDIAN 1
 
 uint8_t host_endian; /* Global boolean for host endianess */
 
