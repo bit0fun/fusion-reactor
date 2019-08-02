@@ -76,12 +76,12 @@
 #define OFFSET_DSEL_LI		11
 #define OFFSET_IMM_LI		16
 #define OFFSET_FUNCT_S		23
-#define OFFSET_IMM_HI_S		21
-#define OFFSET_IMM_LO_S		8
-#define OFFSET_IMM_HI_J		OFFSET_RD
-#define OFFSET_IMM_LO_J		16
-#define OFFSET_IMM_HI_B		21
-#define OFFSET_IMM_LO_B		6
+#define OFFSET_IMM_HI_S		3
+#define OFFSET_IMM_LO_S		21
+#define OFFSET_IMM_HI_J		8//OFFSET_RD
+#define OFFSET_IMM_LO_J		16//21
+#define OFFSET_IMM_HI_B		3
+#define OFFSET_IMM_LO_B		21
 #define OFFSET_FUNCT_B		30
 #define OFFSET_FUNCT_SYS	16
 #define OFFSET_IMM_SYS		24
@@ -94,6 +94,7 @@
 #define MASK_6bit			(unsigned)0x0000003f
 #define MASK_7bit			(unsigned)0x0000007f
 #define MASK_8bit			(unsigned)0x000000ff
+#define MASK_9bit			(unsigned)0x000001ff
 #define MASK_11bit			(unsigned)0x000007ff
 #define MASK_12bit			(unsigned)0x00000fff
 #define MASK_14bit			(unsigned)0x00003fff
@@ -111,14 +112,14 @@
 #define MASK_DSEL_LI		MASK_RSA
 #define MASK_IMM_LI			(MASK_16bit << OFFSET_IMM_LI)//0xffff0000
 #define MASK_FUNCT_S		MASK_RSB
-#define MASK_IMM_HI_S		(MASK_11bit << OFFSET_IMM_HI_S)//0xfff00000
-#define MASK_IMM_LO_S		(MASK_3bit << OFFSET_IMM_LO_S)//0x00000700
+#define MASK_IMM_HI_S		((unsigned)0x00000700)//(MASK_11bit << OFFSET_IMM_HI_S)//0xfff00000
+#define MASK_IMM_LO_S		((unsigned)0xffe00000)//(MASK_3bit << OFFSET_IMM_LO_S)//0x00000700
 #define MASK_IMM_S			( MASK_IMM_LO_S | MASK_IMM_HI_S ) //0xfff00700
-#define MASK_IMM_HI_J		MASK_RD//0xffff0000	
-#define MASK_IMM_LO_J		(MASK_16bit << OFFSET_IMM_LO_J)
+#define MASK_IMM_HI_J		((unsigned)0x0000e003)//MASK_RD//0xffff0000	
+#define MASK_IMM_LO_J		((unsigned)0xffff0000)//(MASK_16bit << OFFSET_IMM_LO_J)
 #define MASK_IMM_J			( (MASK_IMM_LO_J) | (MASK_IMM_HI_J) )//0xffff03e0
-#define MASK_IMM_HI_B		(MASK_11bit << OFFSET_IMM_HI_B)//0x03fe0000
-#define MASK_IMM_LO_B		MASK_RD
+#define MASK_IMM_LO_B		((unsigned)0x3fe00000)//(MASK_9bit << OFFSET_IMM_HI_B)//0x03fe0000
+#define MASK_IMM_HI_B		((unsigned)0x000007c0)//MASK_RD
 #define MASK_IMM_B			( MASK_IMM_LO_B | MASK_IMM_HI_B )//0x03fe03e0
 #define MASK_FUNCT_B		( MASK_2bit << OFFSET_FUNCT_B )//0xc0000000
 #define MASK_FUNCT_SYS		( MASK_8bit << OFFSET_FUNCT_SYS)//0x0f000000
@@ -143,12 +144,12 @@
 
 
 /* Bit field split mask for immediates*/
-#define SPLIT_S_IMM_LO		(MASK_IMM_HI_S >> OFFSET_IMM_HI_S) 
-#define SPLIT_S_IMM_HI		(MASK_IMM_LO_S >> OFFSET_IMM_LO_S)
-#define SPLIT_J_IMM_LO		(MASK_IMM_HI_J >> OFFSET_IMM_HI_J) 
-#define SPLIT_J_IMM_HI		(MASK_IMM_LO_J >> OFFSET_IMM_LO_J)
-#define SPLIT_B_IMM_LO		(MASK_IMM_HI_B >> OFFSET_IMM_HI_B) 
-#define SPLIT_B_IMM_HI		(MASK_IMM_LO_B >> OFFSET_IMM_LO_B)
+#define SPLIT_S_IMM_LO		((unsigned)0x000007ff)//(MASK_3bit)//(MASK_IMM_LO_S >> OFFSET_IMM_LO_S)
+#define SPLIT_S_IMM_HI		((unsigned)0x00003800)//(MASK_11bit << 3)//((MASK_IMM_HI_S >> OFFSET_IMM_HI_S) << 3)
+#define SPLIT_J_IMM_LO		((unsigned)0x0000ffff)//(MASK_16bit)//(MASK_IMM_LO_J >> OFFSET_IMM_LO_J) 
+#define SPLIT_J_IMM_HI		((unsigned)0x001f0000)//(MASK_5bit << 16)//((MASK_IMM_HI_J >> OFFSET_IMM_HI_J) << 16)
+#define SPLIT_B_IMM_LO		0x000001ff//(MASK_9bit)//(MASK_IMM_LO_B >> OFFSET_IMM_LO_B) 
+#define SPLIT_B_IMM_HI		0x00003e00//(MASK_5bit << 9)//((MASK_IMM_HI_B >> OFFSET_IMM_HI_B) << 9)
 
 #else
 /* Big endian definitions */
@@ -261,11 +262,6 @@
 #define FRMT_SYS			7
 #define FRMT_MAX			9
 
-/*Defines for Co-Processor ID*/
-//#define CPID_MAIN		0
-//#define CPID_MACRO		1
-//#define CPID_MAX		2
-
 /*Defines for Opcodes*/
 #define OPC_INT			0x13 //010011
 #define OPC_IMM			0x16 //010110
@@ -298,6 +294,7 @@
 
 
 /*Instruction bits*/
+
 
 /*Macro IDs*/
 enum{
