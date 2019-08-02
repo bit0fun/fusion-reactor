@@ -4,7 +4,7 @@
 #include "fusion.h"
 #include "fusion-opc.h"
 //#include "parseelf.h"
-#include "fusion-elf.h"
+#include "../fusion-elf/fusion-elf.h"
 
 #define SEXT_14B(N)		( ((N) & 0x3FFF) | ( ( ((N) & 0x2000) ? 0xFFFFC000 : 0 ) ) )
 #define SEXT_16B(N)		( ((N) & 0xFFFF) | ( ( ((N) & 0x8000) ? 0xFFFF0000 : 0 ) ) )

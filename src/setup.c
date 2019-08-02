@@ -146,7 +146,7 @@ int create_memspace( const char* filename ){
 
 			/* Need to remove ELF header section if it is the segment to load */
 			if( elf_phdr[i]->p_vaddr < ROM_START ){
-				write_mem( ROM_START, (uint8_t*)elf_hdr + (elf_phdr[i]->p_offset) + ( ROM_START - elf_phdr[i]->p_vaddr + 8 ), elf_phdr[i]->p_filesz -  + ( ROM_START - elf_phdr[i]->p_vaddr + 8 ), 1 );
+				write_mem( ROM_START, (uint8_t*)elf_hdr + (elf_phdr[i]->p_offset) + ( ROM_START - elf_phdr[i]->p_vaddr ), elf_phdr[i]->p_filesz - ( ROM_START - elf_phdr[i]->p_vaddr ), 1 );
 			}
 			else {
 

@@ -356,8 +356,8 @@ int print_reg(uint32_t* reg,  uint32_t pc){
 	//	mvwprintw(reg_view, i, 18, "r[%d]:\t%08x", i+16, reg[i+16]);			
 		printf("r[%d]:\t%08x\tr[%d]:\t%08x\n", i, (reg[i]), i+16, (reg[i+16]) );
 	}
-	printf("Special Registers\n");
-	printf("PC:\t%08x\n\n", pc );
+//	printf("Special Registers\n");
+//	printf("PC:\t%08x\n\n", pc );
 	//mvwprintw(reg_view, 1, 41, "pc:\t%08x", pc);			
 
 
